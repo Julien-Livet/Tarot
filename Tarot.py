@@ -1,110 +1,175 @@
 from enum import Enum
+import io
 import math
 from PIL import Image, ImageTk
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QWidget
 import random
+import sys
 import time
-import tkinter as tk
 import threading
-from tkinter import ttk
 
 cardSize = (56, 109)
 
 class GUI:
     def __init__(self):
         self._playerNumber = 5
-        self._root = None
+        self._window = None
+        self._dialog = None
         self._ok = False
 
-    def start(self):
-        self._root = tk.Tk()
-        self._root.title("Choose a game")
-
-        threeButton = tk.Button(self._root, text="Three players", command=self.threePlayer)
-        threeButton.pack(pady=10)
-        fourButton = tk.Button(self._root, text="Four players", command=self.fourPlayer)
-        fourButton.pack(pady=10)
-        fiveButton = tk.Button(self._root, text="Five players", command=self.fivePlayer)
-        fiveButton.pack(pady=10)
-
-        self._root.mainloop()
-        
-    def threePlayer(self):
-        self._root.destroy()
+    def threePlayers(self):
         self._playerNumber = 3
-        self.play()
+        self._dialog.accept()
     
-    def fourPlayer(self):
-        self._root.destroy()
+    def fourPlayers(self):
         self._playerNumber = 4
-        self.play()
+        self._dialog.accept()
     
-    def fivePlayer(self):
-        self._root.destroy()
+    def fivePlayers(self):
         self._playerNumber = 5
-        self.play()
+        self._dialog.accept()
     
     def displayTable(self, centerCards: list, displayCenterCards: bool = False):
         img = self._game.tableImage(self._showPlayers, centerCards, displayCenterCards)
-        scale = 0.9
+        scale = 0.85
         img = img.resize((int(img.width * scale),
                           int(img.height * scale)))
 
-        img_tk = ImageTk.PhotoImage(img)
-        self._tableLabel.config(image = img_tk)
-        self._root.update()
-    
-    def play(self):
+        byteArray = io.BytesIO()
+        img.save(byteArray, format = 'PNG')
+        pixmap = QPixmap()
+        pixmap.loadFromData(byteArray.getvalue())
+        self._tableLabel.setPixmap(pixmap)
+
+    def play(self) -> bool:
+        self._dialog = QDialog()
+        self._dialog.setWindowTitle("Choose a game")
+        
+        layout = QVBoxLayout()
+
+        threeButton = QPushButton("Three players", self._dialog)
+        threeButton.clicked.connect(self.threePlayers)
+        fourButton = QPushButton("Four players", self._dialog)
+        fourButton.clicked.connect(self.fourPlayers)
+        fiveButton = QPushButton("Five players", self._dialog)
+        fiveButton.clicked.connect(self.fivePlayers)
+        
+        layout.addWidget(threeButton)
+        layout.addWidget(fourButton)
+        layout.addWidget(fiveButton)
+        
+        self._dialog.setLayout(layout)
+        
+        self._dialog.exec()
+            
+        if (self._dialog.result() == QDialog.Rejected):
+            return True
+
         self._game = Game(self._playerNumber)
         self._game.giveHands()
         self._game._players[0]._isHuman = True
         self._showPlayers = [False for i in range(0, self._playerNumber)]
         self._showPlayers[0] = True #self._showPlayers[random.randrange(self._playerNumber)] = True
 
-        self._root = tk.Tk()
-        self._root.title("Table")
+        self._window = QDialog()
+        self._window.setWindowTitle("Tarot")
 
-        self._tableLabel = tk.Label(self._root)
-        self._tableLabel.pack(pady=10)
+        self._tableLabel = QLabel(self._window)
         self.displayTable(self._game._dog, False)
+        self._pointsLabel = QLabel("Attack points: 0 - Defence points: 0", self._window)
+        self._pointsLabel.setAlignment(Qt.AlignCenter)
         
-        self._contractLabel = tk.Label(self._root, text="Choose a contract")
-        self._contractLabel.pack(pady=10)
-        self._contractLabel.pack_forget()
-        self._contractComboBox = ttk.Combobox(self._root)
-        self._contractComboBox.pack(pady=10)
-        self._contractComboBox.pack_forget()
-        
+        self._contractLabel = QLabel("Choose a contract", self._window)
+        self._contractLabel.setVisible(False)
+        self._contractComboBox = QComboBox(self._window)
+        self._contractComboBox.setVisible(False)
+
         choices = []
         
         for i in range(0, 4):
             choices.append(str(Family(i)))
         
-        self._kingLabel = tk.Label(self._root, text="Call a king")
-        self._kingLabel.pack(pady=10)
-        self._kingLabel.pack_forget()
-        self._kingComboBox = ttk.Combobox(self._root, values=choices)
-        self._kingComboBox.pack(pady=10)
-        self._kingComboBox.pack_forget()
+        self._kingLabel = QLabel("Call a king", self._window)
+        self._kingLabel.setVisible(False)
+        self._kingComboBox = QComboBox(self._window)
+        self._kingComboBox.addItems(choices)
+        self._kingComboBox.setVisible(False)
         
-        okButton = tk.Button(self._root, text="OK", command=self.ok)
-        okButton.pack(pady=10)
-
-        thread = threading.Thread(target = self._game.play, args = (self, ))
-        thread.start()
-
-        self._root.after(10, self.update)
-
-        self._root.mainloop()
+        self._dogLabel = QLabel("Do a dog", self._window)
+        self._dogLabel.setVisible(False)
+        self._dogComboBoxes = []
+        for i in range(0, 6):
+            self._dogComboBoxes.append(QComboBox(self._window))
+            self._dogComboBoxes[-1].setVisible(False)
         
-        thread.join()
-    
-    def update(self):
-        self._root.update_idletasks()
+        self._cardLabel = QLabel("Play a card", self._window)
+        self._cardLabel.setVisible(False)
+        self._cardComboBox = QComboBox(self._window)
+        self._cardComboBox.setVisible(False)
+        
+        okButton = QPushButton("OK", self._window)
+        okButton.clicked.connect(self.ok)
 
-        self._root.after(10, self.update)
-    
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addWidget(self._contractLabel)
+        verticalLayout.addWidget(self._contractComboBox)
+        verticalLayout.addWidget(self._kingLabel)
+        verticalLayout.addWidget(self._kingComboBox)
+        verticalLayout.addWidget(self._dogLabel)
+        for i in range(0, 6):
+            verticalLayout.addWidget(self._dogComboBoxes[i])
+        verticalLayout.addWidget(self._cardLabel)
+        verticalLayout.addWidget(self._cardComboBox)
+        verticalLayout.addWidget(okButton)
+        
+        horizontalLayout = QHBoxLayout()
+        layout = QVBoxLayout()
+        
+        layout.addWidget(self._tableLabel)
+        layout.addWidget(self._pointsLabel)
+        horizontalLayout.addLayout(layout)        
+        horizontalLayout.addLayout(verticalLayout)
+        
+        self._window.setLayout(horizontalLayout)
+        
+        self._window.show()
+
+        self._thread = threading.Thread(target = self._game.play, args = (self, ), daemon = True)
+        self._thread.start()
+
+        self._timer = QTimer(self._window)
+        self._timer.setInterval(10)
+        self._timer.timeout.connect(self.monitor)
+        self._timer.start()
+        
+        return False
+        
     def ok(self):
         self._ok = True
+        
+    def monitor(self):
+        self._pointsLabel.setText("Attack points: "
+                                  + str(self._game.attackPoints())
+                                  + " - Defence points: "
+                                  + str(self._game.defencePoints()))
+    
+        if (not self._thread.is_alive()):
+            if (self._game.attackPoints() == 0
+                and self._game.defencePoints() == 0):
+                QMessageBox.information(self._window, "Game over", "Nobody takes!")
+                
+                self._window.close()
+                
+                self.play()
+            else:
+                if (self._game.attackWins()):
+                     QMessageBox.information(self._window, "Game over", "Attack wins!")
+                else:
+                     QMessageBox.information(self._window, "Game over", "Attack loses!")
+                
+                self._window.close()
 
 class Asset:
     def __init__(self, value: int):
@@ -418,20 +483,20 @@ class Player:
         choices = [strContracts[i] for i in possibleContracts]
 
         if (self._isHuman):
-            gui._contractLabel.pack()
-            gui._contractComboBox.config(values = choices)
-            gui._contractComboBox.pack()
+            gui._contractLabel.setVisible(True)
+            gui._contractComboBox.clear()
+            gui._contractComboBox.addItems(choices)
+            gui._contractComboBox.setVisible(True)
             gui._ok = False
             
             while (not gui._ok):
                 time.sleep(0.01)
             
-            contract = {v: k for k, v in strContracts.items()}.get(gui._contractComboBox.get())
+            contract = {v: k for k, v in strContracts.items()}.get(choices[gui._contractComboBox.currentIndex()])
             
-            gui._contractLabel.pack_forget()
-            gui._contractComboBox.pack_forget()
+            gui._contractLabel.setVisible(False)
+            gui._contractComboBox.setVisible(False)
 
-            print("here2")
             if (contract == -1):
                 return None
             else:
@@ -449,18 +514,20 @@ class Player:
             strFamilies[i] = str(Family(i))
             choices.append(str(Family(i)))
         
+        calledKing = None
+        
         if (self._isHuman):
-            gui._kingLabel.pack()
-            gui._kingComboBox.pack()
+            gui._kingLabel.setVisible(True)
+            gui._kingComboBox.setVisible(True)
             gui._ok = False
             
             while (not gui._ok):
                 time.sleep(0.01)
             
-            calledKing = {v: k for k, v in strFamilies.items()}.get(gui._kingComboBox.get())
+            calledKing = {v: k for k, v in strFamilies.items()}.get(choices[gui._kingComboBox.currentIndex()])
             
-            gui._contractLabel.pack_forget()
-            gui._contractComboBox.pack_forget()
+            gui._kingLabel.setVisible(False)
+            gui._kingComboBox.setVisible(False)
         else:
             #TODO: ...
             
@@ -468,18 +535,15 @@ class Player:
 
         return Family(calledKing)
     
-    def doDog(self, dog: list) -> list:
+    def doDog(self, dog: list, gui: GUI) -> list:
         newDog = []
         
         self._cards += dog
         self._cards = sortCards(self._cards)
         
-        imageForCards(self._cards).show()
-        
+        gui.displayTable([])
+
         if (self._isHuman):
-            root = tk.Tk()
-            root.title("Do dog")
-            
             comboBoxes = []
             
             strCards = {}
@@ -492,24 +556,33 @@ class Player:
                     strCards[i] = str(self._cards[i])
                     choices.append(str(self._cards[i]))
             
-            for i in range(0, len(dog)):
-                comboBoxes.append(ttk.Combobox(root, values=choices))
-                comboBoxes[-1].pack(pady=10)
+            gui._dogLabel.setVisible(True)
             
-            okButton = tk.Button(root, text="OK", command=root.quit)
-            okButton.pack(pady=10)
+            for i in range(0, len(dog)):
+                gui._dogComboBoxes[i].clear()
+                gui._dogComboBoxes[i].addItems(choices)
+                gui._dogComboBoxes[i].setVisible(True)
 
-            root.mainloop()
+            loop = True
             
-            selectedCards = []
+            while (loop):
+                gui._ok = False
+                
+                while (not gui._ok):
+                    time.sleep(0.01)
+  
+                selectedCards = []
+                
+                for i in range(0, len(dog)):
+                    selectedCards.append(choices[gui._dogComboBoxes[i].currentIndex()])
+                
+                loop = len(set(selectedCards)) != len(dog)
+            
+            gui._dogLabel.setVisible(False)
             
             for i in range(0, len(dog)):
-                selectedCards.append(comboBoxes[i].get())
-            
-            root.destroy()
-                
-            assert(len(set(selectedCards)) == len(dog))
-            
+                gui._dogComboBoxes[i].setVisible(False)
+                          
             d = {v: k for k, v in strCards.items()}
             
             for i in range(0, len(dog)):
@@ -523,7 +596,7 @@ class Player:
                 del self._cards[j]
         else:
             #TODO: ...
-        
+
             pass
         
         assert(len(newDog) == len(dog))
@@ -531,8 +604,11 @@ class Player:
         return sortCards(newDog)
 
     def playCard(self, cards: list, firstRound: bool, calledKing: Family) -> Card:
+        gui.displayTable(cards, True)
+        time.sleep(1.0)
+
         card = None
-        
+
         strCards = {}
         choices = []
 
@@ -596,21 +672,19 @@ class Player:
                 choices.append(str(self._cards[i]))
 
         if (self._isHuman):
-            imageForCards(self._cards).show()
+            gui._cardLabel.setVisible(True)
+            gui._cardComboBox.clear()
+            gui._cardComboBox.addItems(choices)
+            gui._cardComboBox.setVisible(True)
+            gui._ok = False
             
-            root = tk.Tk()
-            root.title("Play card")
+            while (not gui._ok):
+                time.sleep(0.01)
             
-            comboBoxes = []
+            gui._cardLabel.setVisible(False)
+            gui._cardComboBox.setVisible(False)
             
-            comboBox= ttk.Combobox(root, values=choices)
-            comboBox.pack(pady=10)
-            okButton = tk.Button(root, text="OK", command=root.quit)
-            okButton.pack(pady=10)
-
-            root.mainloop()
-            
-            selectedCard = {v: k for k, v in strCards.items()}.get(comboBox.get())
+            selectedCard = {v: k for k, v in strCards.items()}.get(choices[gui._cardComboBox.currentIndex()])
             
             root.destroy()
                 
@@ -657,7 +731,7 @@ class Game:
         self._players[self._taker].knownTeam = True
 
         if (self._playerNumber == 5):
-            self._calledKing = self._players[self._firstPlayer].callKing(gui)
+            self._calledKing = self._players[self._taker].callKing(gui)
         else:
             for i in range(0, len(self._players)):
                 if (i != self._taker):
@@ -666,8 +740,8 @@ class Game:
 
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
-            #Show dog
-            imageForCards(self._dog).show()
+            gui.displayTable(self._dog, True)
+            time.sleep(1.0)
 
             kingInDog = False
 
@@ -698,7 +772,7 @@ class Game:
                         self._players[i]._attackTeam = False
                         self._players[i].teamKnown = True
 
-            self._dog = self._players[self._taker].doDog(self._dog)
+            self._dog = self._players[self._taker].doDog(self._dog, gui)
 
         n = int((78 - len(self._dog)) / self._playerNumber)
 
@@ -712,8 +786,7 @@ class Game:
 
             self._firstPlayer = self.playSet(cards, i == n - 1)
 
-        #Show dog
-        imageForCards(self._dog).show()
+        gui.displayTable(self._dog, True)
 
         if (self._contract == Contract.GuardWithout):
             for p in self._players:
@@ -724,8 +797,6 @@ class Game:
             self._players[self._taker]._cards += self._dog
 
         self._dog = []
-
-        print(self.attackWins())
 
     def attackPoints(self):
         points = 0
@@ -938,10 +1009,16 @@ class Game:
         
         centerCardsImage = imageForCards(centerCards, shown = showCenterCards)
         
-        tableImage.paste(centerCardsImage, (int((tableImage.width - centerCardsImage.width) / 2),
-                                            int((tableImage.height - centerCardsImage.height) / 2)))
+        if (centerCardsImage):
+            tableImage.paste(centerCardsImage, (int((tableImage.width - centerCardsImage.width) / 2),
+                                                int((tableImage.height - centerCardsImage.height) / 2)))
         
         radius = 300
+        
+        if (self._playerNumber == 4):
+            radius = 275
+        elif (self._playerNumber == 3):
+            radius = 225
         
         positions = [(int(tableImage.width / 2),
                       int(tableImage.height / 2 + radius))]
@@ -955,16 +1032,22 @@ class Game:
 
         for i in range(0, self._playerNumber):
             playerCardsImage = imageForCards(self._players[i]._cards, shown = showPlayers[i])
-            x = positions[i][0]
-            y = positions[i][1]
-            img = playerCardsImage.rotate(angles[i], expand = True)
-            x -= img.width / 2
-            y -= img.height / 2
-            image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(img, (int(x), int(y)))
-            tableImage = Image.alpha_composite(tableImage, image)
+            
+            if (playerCardsImage):
+                x = positions[i][0]
+                y = positions[i][1]
+                img = playerCardsImage.rotate(angles[i], expand = True)
+                x -= img.width / 2
+                y -= img.height / 2
+                image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                image.paste(img, (int(x), int(y)))
+                tableImage = Image.alpha_composite(tableImage, image)
         
         return tableImage
 
+app = QApplication(sys.argv)
+
 gui = GUI()
-gui.start()
+
+if (not gui.play()):
+    sys.exit(app.exec_())
