@@ -173,9 +173,9 @@ class GUI:
         
         if (self._game._calledKing):
             take = "\nCalled king: " + str(self._game._calledKing)
-    
+
         if (self._game._contract):
-            take = "\nContract: " + str(self._game._contract) + " (" + str(self._game.attackTargetPoints()) + " points)"
+            take += "\nContract: " + str(self._game._contract) + " (" + str(self._game.attackTargetPoints()) + " points)"
     
         self._pointsLabel.setText("Attack points: "
                                   + str(self._game.attackPoints())
@@ -868,7 +868,7 @@ class Game:
                                     
                     if (cards[p].isAsset()):      
                         if (firstCard and firstCard.isFamilyCard()
-                            and firstCard.familiyCard().family() == self._calledKing):
+                            and firstCard.familyCard().family() == self._calledKing):
                             p._attackTeam = False
                             p._teamKnown = True
                     elif (cards[p].isFamilyCard()
