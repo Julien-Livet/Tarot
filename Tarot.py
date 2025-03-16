@@ -2,6 +2,7 @@ from enum import Enum
 import io
 import math
 from PIL import Image, ImageTk
+from PyQt5 import QtTest
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QWidget
@@ -150,10 +151,16 @@ class GUI:
         self._ok = True
         
     def monitor(self):
+        take = ""
+        
+        if (self._game._calledKing):
+            take = " - Called king: " + str(self._game._calledKing)
+    
         self._pointsLabel.setText("Attack points: "
                                   + str(self._game.attackPoints())
                                   + " - Defence points: "
-                                  + str(self._game.defencePoints()))
+                                  + str(self._game.defencePoints())
+                                  + take)
     
         if (not self._thread.is_alive()):
             if (self._game.attackPoints() == 0
@@ -502,7 +509,7 @@ class Player:
             gui._ok = False
             
             while (not gui._ok):
-                time.sleep(0.01)
+                QtTest.QTest.qWait(10)
             
             contract = {v: k for k, v in strContracts.items()}.get(choices[gui._contractComboBox.currentIndex()])
             
@@ -534,7 +541,7 @@ class Player:
             gui._ok = False
             
             while (not gui._ok):
-                time.sleep(0.01)
+                QtTest.QTest.qWait(10)
             
             calledKing = {v: k for k, v in strFamilies.items()}.get(choices[gui._kingComboBox.currentIndex()])
             
@@ -581,7 +588,7 @@ class Player:
                 gui._ok = False
                 
                 while (not gui._ok):
-                    time.sleep(0.01)
+                    QtTest.QTest.qWait(10)
   
                 selectedCards = []
                 
@@ -615,9 +622,8 @@ class Player:
         
         return sortCards(newDog)
 
-    def playCard(self, cards: list, firstRound: bool, calledKing: Family) -> Card:
-        gui.displayTable(cards, True)
-        time.sleep(1.0)
+    def playCard(self, cards: dict, firstRound: bool, calledKing: Family) -> Card:
+        QtTest.QTest.qWait(1000)
 
         card = None
 
@@ -627,6 +633,8 @@ class Player:
         cardAssets = []
         
         cardList = [x[1] for x in cards.items()]
+        
+        gui.displayTable(cardList, True)
         
         for card in cardList:
             if (card.isAsset()):
@@ -671,17 +679,20 @@ class Player:
                         if (firstCard.isAsset()):
                             if (len(handAssets)):
                                 if (self._cards[i].isAsset()):
-                                    if (handAssets[-1] > cardAssets[-1]
-                                        and self._cards[i].asset().value() < cardAssets[-1]):
+                                    if (handAssets[-1].value() > cardAssets[-1].value()
+                                        and self._cards[i].asset().value() < cardAssets[-1].value()):
                                         add = False
                                 else:
                                     add = False
                         else:
                             if (self._cards[i].isAsset()):
                                 if (len(handFamilies[firstCard.familyCard().family()])):
+                                    if (not self._cards[i].asset().isFool()):
+                                        add = False
+                                else:
                                     if (len(cardAssets)):
                                         if (handAssets[-1].value() > cardAssets[-1].value()
-                                            and self._cards[i].asset().value() < cardAssets[-1]):
+                                            and self._cards[i].asset().value() < cardAssets[-1].value()):
                                             add = False
                             else:
                                 if (self._cards[i].familyCard().family() != firstCard.familyCard().family()
@@ -700,15 +711,13 @@ class Player:
             gui._ok = False
             
             while (not gui._ok):
-                time.sleep(0.01)
+                QtTest.QTest.qWait(10)
             
             gui._cardLabel.setVisible(False)
             gui._cardComboBox.setVisible(False)
             
             selectedCard = {v: k for k, v in strCards.items()}.get(choices[gui._cardComboBox.currentIndex()])
-            
-            root.destroy()
-                
+
             card = self._cards[selectedCard]
             del self._cards[selectedCard]
         else:
@@ -762,7 +771,7 @@ class Game:
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
             gui.displayTable(self._dog, True)
-            time.sleep(1.0)
+            QtTest.QTest.qWait(1000)
 
             kingInDog = False
 
@@ -803,7 +812,6 @@ class Game:
             for i in range(0, self._playerNumber):
                 p = (self._firstPlayer + i) % self._playerNumber
                 cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
-                imageForCards([x[1] for x in cards.items()]).show()
 
             self._firstPlayer = self.playSet(cards, i == n - 1)
 
@@ -949,10 +957,10 @@ class Game:
     
     def playSet(self, cards: dict, lastSet: bool):
         assets = {}
-        families = {Family.Heart: [],
-                    Family.Diamond: [],
-                    Family.Club: [],
-                    Family.Spade: []}
+        families = {Family.Heart: {},
+                    Family.Diamond: {},
+                    Family.Club: {},
+                    Family.Spade: {}}
         for k, v in cards.items():
             if v.isAsset():
                 assets[k] = v
@@ -965,8 +973,8 @@ class Game:
 
         foolIndex = -1
         
-        for i in range(0, len(assets)):
-            if (assets[i].isFool()):
+        for i in range(0, len(assets.items())):
+            if (list(assets.items())[i][1].asset().isFool()):
                 foolIndex = i
                 break
 
