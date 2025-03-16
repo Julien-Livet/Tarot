@@ -78,7 +78,6 @@ class GUI:
         self._window.setWindowTitle("Tarot")
 
         self._tableLabel = QLabel(self._window)
-        self.displayTable(self._game._dog, False)
         self._pointsLabel = QLabel("Attack points: 0 - Defence points: 0", self._window)
         self._pointsLabel.setAlignment(Qt.AlignCenter)
         
@@ -145,8 +144,27 @@ class GUI:
         self._timer.timeout.connect(self.monitor)
         self._timer.start()
         
-        return False
+        self._centerTimer = QTimer(self._window)
+        self._centerTimer.setInterval(500)
+        self._centerTimer.setSingleShot(True)
+        self._centerTimer.timeout.connect(self.centerWindow)
+        self._centerTimer.start()
         
+        return False
+    
+    def centerWindow(self):
+        screen_geometry = QApplication.desktop().availableGeometry()
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        window_width = self._window.width()
+        window_height = self._window.height()
+
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        self._window.move(x, y)
+    
     def ok(self):
         self._ok = True
         
@@ -415,9 +433,9 @@ def imageForCards(cards: list, shown: bool = True, ratio: float = 1 / 3):
 def pointsForCards(cards: list) -> int:
     points = 0
     
-    for card in folds:
+    for card in cards:
         points += card.points()
-        
+
     return points
 
 def sortCards(cards: list) -> list:
@@ -459,8 +477,7 @@ class Player:
     def points(self) -> int:
         points = 0
         
-        for fold in self._folds:
-            points += pointsForCards(fold)
+        points += pointsForCards(self._folds)
 
         return points
                 
@@ -659,18 +676,24 @@ class Player:
         for i in range(0, len(self._cards)):
             add = True
             
+            ok = True
+            
             if (firstRound):
                 if (len(cardList) == 0):
                     if (self._cards[i].isFamilyCard()
                         and self._cards[i].familyCard().family() == calledKing
                         and self._cards[i].familyCard().value() != 14):
                         add = False
-            else:
+                        ok = False
+                else:
+                    ok = True
+            
+            if (ok):
                 if (len(cardList)):
                     firstCard = cardList[0]
                     
                     if (firstCard.isAsset() and firstCard.asset().isFool()):
-                        if (len(cardList) > 0):
+                        if (len(cardList) > 1):
                             firstCard = cardList[1]
                         else:
                             firstCard = None
@@ -679,7 +702,8 @@ class Player:
                         if (firstCard.isAsset()):
                             if (len(handAssets)):
                                 if (self._cards[i].isAsset()):
-                                    if (handAssets[-1].value() > cardAssets[-1].value()
+                                    if (not self._cards[i].asset().isFool()
+                                        and handAssets[-1].value() > cardAssets[-1].value()
                                         and self._cards[i].asset().value() < cardAssets[-1].value()):
                                         add = False
                                 else:
@@ -742,6 +766,7 @@ class Game:
         self._taker = None
         self._foolPlayed = None
         self._foolCardGiven = False
+        self._currentPlayer = None
         assert(3 <= self._playerNumber and self._playerNumber <= 5)
     
     def play(self, gui):
@@ -749,6 +774,8 @@ class Game:
         
         for i in range(0, self._playerNumber):
             p = (self._firstPlayer + i) % self._playerNumber
+            self._currentPlayer = p
+            gui.displayTable(self._dog, False)
             contract = self._players[p].chooseContract(gui, self._contract)
             if (contract):
                 self._taker = p
@@ -758,7 +785,10 @@ class Game:
             return
 
         self._players[self._taker]._attackTeam = True
-        self._players[self._taker].knownTeam = True
+        self._players[self._taker]._teamKnown = True
+
+        self._currentPlayer = self._taker
+        gui.displayTable(self._dog, False)
 
         if (self._playerNumber == 5):
             self._calledKing = self._players[self._taker].callKing(gui)
@@ -766,7 +796,7 @@ class Game:
             for i in range(0, len(self._players)):
                 if (i != self._taker):
                     self._players[i]._attackTeam = False
-                    self._players[i].teamKnown = True
+                    self._players[i]._teamKnown = True
 
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
@@ -800,7 +830,7 @@ class Game:
                 for i in range(0, len(self._players)):
                     if (i != self._taker):
                         self._players[i]._attackTeam = False
-                        self._players[i].teamKnown = True
+                        self._players[i]._teamKnown = True
 
             self._dog = self._players[self._taker].doDog(self._dog, gui)
 
@@ -809,13 +839,17 @@ class Game:
         for i in range(0, n):
             cards = {}
 
-            for i in range(0, self._playerNumber):
-                p = (self._firstPlayer + i) % self._playerNumber
+            for j in range(0, self._playerNumber):
+                p = (self._firstPlayer + j) % self._playerNumber
+                self._currentPlayer = p
                 cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
-
+                gui.displayTable([v for k, v in cards.items()], True)
+                QtTest.QTest.qWait(1000)
+            
             self._firstPlayer = self.playSet(cards, i == n - 1)
 
         gui.displayTable(self._dog, True)
+        QtTest.QTest.qWait(1000)
 
         if (self._contract == Contract.GuardWithout):
             for p in self._players:
@@ -826,6 +860,10 @@ class Game:
             self._players[self._taker]._cards += self._dog
 
         self._dog = []
+        
+        gui.displayTable([])
+        
+        self._currentPlayer = None
 
     def attackPoints(self):
         points = 0
@@ -833,7 +871,7 @@ class Game:
         for p in self._players:
             if p.teamKnown() and p.attackTeam():
                 points += p.points()
-        
+
         return points
 
     def attackCards(self):
@@ -988,17 +1026,17 @@ class Game:
                     if (attackTeam):
                         for i in range(0, self.playerNumber):
                             if (self._players[i].defenceTeam()):
-                                self._players[i]._folds += assets.items()[foolIndex][1]
+                                self._players[i]._folds += list(assets.items())[foolIndex][1]
                                 del assets[i]
                                 break
                     else:
                         for i in range(0, self.playerNumber):
                             if (self._players[i].attackTeam()):
-                                self._players[i]._folds += assets.items()[foolIndex][1]
+                                self._players[i]._folds += list(assets.items())[foolIndex][1]
                                 del assets[i]
                                 break
                 else:
-                    self._players[p]._folds += assets.items()[foolIndex][1]
+                    self._players[p]._folds += list(assets.items())[foolIndex][1]
                     del assets[p]
             if (len(assets)):
                 p = list(assets.items())[-1][0]
@@ -1083,7 +1121,22 @@ class Game:
             if (playerCardsImage):
                 x = positions[i][0]
                 y = positions[i][1]
-                img = playerCardsImage.rotate(angles[i], expand = True)
+
+                img = playerCardsImage
+
+                if (i == self._currentPlayer):
+                    scale = 1.1
+                    bgImg = img.resize((int(img.width * scale),
+                                        int(img.height * scale)))
+                    bgImg.paste((255, 255, 0, 128), [0, 0, bgImg.width, bgImg.height])
+                    bgImg = bgImg.rotate(angles[i], expand = True)
+                    
+                    image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                    image.paste(bgImg, (int(x - bgImg.width / 2),
+                                        int(y - bgImg.height / 2)))
+                    tableImage = Image.alpha_composite(tableImage, image)    
+
+                img = img.rotate(angles[i], expand = True)
                 x -= img.width / 2
                 y -= img.height / 2
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
