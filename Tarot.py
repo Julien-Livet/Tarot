@@ -165,9 +165,21 @@ class GUI:
                 self.play()
             else:
                 if (self._game.attackWins()):
-                     QMessageBox.information(self._window, "Game over", "Attack wins!")
+                     QMessageBox.information(self._window,
+                                             "Game over",
+                                             "Attack wins ("
+                                             + str(self._game.attackPoints())
+                                             + " points for "
+                                             + str(self._game.attackTargetPoints())
+                                             + " points)!")
                 else:
-                     QMessageBox.information(self._window, "Game over", "Attack loses!")
+                     QMessageBox.information(self._window,
+                                             "Game over",
+                                             "Attack loses ("
+                                             + str(self._game.attackPoints())
+                                             + " points for "
+                                             + str(self._game.attackTargetPoints())
+                                             + " points)!")
                 
                 self._window.close()
 
@@ -993,20 +1005,38 @@ class Game:
         
         return p
 
-    def attackWins(self):
+    def attackTargetPoints(self):
         cards = self.attackCards()
         
-        minimumPoints = 56
+        points = 56
         oudlerCount = countOudlersForCards(cards)
 
         if (oudlerCount == 3):
-            minimumPoints = 36
-        elif (oudlerCount == 2):
-            minimumPoints = 41
+            points = 36
+        elif (points == 2):
+            points = 41
         elif (oudlerCount == 1):
-            minimumPoints = 51
+            points = 51
+            
+        return points
 
-        return self.attackPoints() >= minimumPoints
+    def defenceTargetPoints(self):
+        cards = self.defenceCards()
+        
+        points = 56
+        oudlerCount = countOudlersForCards(cards)
+
+        if (oudlerCount == 3):
+            points = 36
+        elif (points == 2):
+            points = 41
+        elif (oudlerCount == 1):
+            points = 51
+            
+        return points
+
+    def attackWins(self):
+        return self.attackPoints() >= self.attackTargetPoints()
 
     def defenceWins(self):
         return not self.attackWins()
