@@ -224,7 +224,7 @@ class Asset:
         
     def value(self) -> int:
         return self._value
-        
+
     def points(self) -> int:
         if (self.isOudler()):
             return 4.5
@@ -363,6 +363,12 @@ class Card:
             return self._asset.value()
         else: #elif self.isFamilyCard():
             return self._familyCard.value()
+
+    def points(self) -> int:
+        if self.isAsset():
+            return self._asset.points()
+        else: #elif self.isFamilyCard():
+            return self._familyCard.points()
 
     def __int__(self) -> int:
         if self.isAsset():
@@ -861,8 +867,8 @@ class Game:
                                 firstCard = list(cards.items())[1][1]
                                     
                     if (cards[p].isAsset()):      
-                        if (firstCard and firstCard.isCardFamily()
-                            and firstCard.cardFamily().family() == self._calledKing):
+                        if (firstCard and firstCard.isFamilyCard()
+                            and firstCard.familiyCard().family() == self._calledKing):
                             p._attackTeam = False
                             p._teamKnown = True
                     elif (cards[p].isFamilyCard()
