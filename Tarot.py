@@ -1174,9 +1174,8 @@ class Game:
                 img = playerCardsImage
 
                 if (i == self._currentPlayer):
-                    scale = 1.1
-                    bgImg = img.resize((int(img.width * scale),
-                                        int(img.height * scale)))
+                    bgImg = img.resize((int(img.width + 10),
+                                        int(img.height + 10)))
                     bgImg.paste((255, 255, 0, 128), [0, 0, bgImg.width, bgImg.height])
                     bgImg = bgImg.rotate(angles[i], expand = True)
                     
