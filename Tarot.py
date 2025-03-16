@@ -1,7 +1,7 @@
 from enum import Enum
 import io
 import math
-from PIL import Image, ImageTk
+from PIL import Image, ImageDraw, ImageFont
 from PyQt5 import QtTest
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
@@ -843,6 +843,26 @@ class Game:
                 p = (self._firstPlayer + j) % self._playerNumber
                 self._currentPlayer = p
                 cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
+                
+                if (not p._teamKnown
+                    and cards[p].isAsset()):
+                    firstCard = None
+                    
+                    if (len(cards)):
+                        firstCard = list(cards.items())[0][1]
+                        
+                        if (firstCard.isAsset()
+                            and firstCard.asset().isFool()):
+                            if (len(cards) > 1):
+                                firstCard = None
+                            else:
+                                firstCard = list(cards.items())[1][1]
+                                
+                    if (firstCard and firstCard.isCardFamily()
+                        and firstCard.cardFamily().family() == self._calledKing):
+                        p._attackTeam = False
+                        p._teamKnown = True
+
                 gui.displayTable([v for k, v in cards.items()], True)
                 QtTest.QTest.qWait(1000)
             
@@ -1116,12 +1136,33 @@ class Game:
             positions.append((x, y))
 
         for i in range(0, self._playerNumber):
+            text = "?"
+            
+            if (self._players[i].teamKnown()):
+                text = "Attack" if self._players[i].attackTeam() else "Defence"
+        
+            draw = ImageDraw.Draw(tableImage)
+        
+            font = ImageFont.truetype("DejaVuSans.ttf", 20)
+            bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
+            w = bbox[2] - bbox[0]
+            h = int(1.5 * (bbox[3] - bbox[1]))
+            textImage = Image.new('RGBA', (w, h))
+            draw = ImageDraw.Draw(textImage)
+            draw.text((0, 0), text, font = font, fill = "black")
+            textImage = textImage.rotate(angles[i], expand = True)
+            
+            x = positions[i][0]
+            y = positions[i][1]
+
+            image = Image.new('RGBA', (tableImage.width, tableImage.height))
+            image.paste(textImage, (int(x - 80 * math.sin(math.radians(angles[i])) - textImage.width / 2),
+                                    int(y - 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
+            tableImage = Image.alpha_composite(tableImage, image)
+            
             playerCardsImage = imageForCards(self._players[i]._cards, shown = showPlayers[i])
             
             if (playerCardsImage):
-                x = positions[i][0]
-                y = positions[i][1]
-
                 img = playerCardsImage
 
                 if (i == self._currentPlayer):
