@@ -34,7 +34,7 @@ class GUI:
     
     def displayTable(self, centerCards: list, displayCenterCards: bool = False):
         img = self._game.tableImage(self._showPlayers, centerCards, displayCenterCards)
-        scale = 0.85
+        scale = 0.8
         img = img.resize((int(img.width * scale),
                           int(img.height * scale)))
 
@@ -172,7 +172,10 @@ class GUI:
         take = ""
         
         if (self._game._calledKing):
-            take = " - Called king: " + str(self._game._calledKing)
+            take = "\nCalled king: " + str(self._game._calledKing)
+    
+        if (self._game._contract):
+            take = "\nContract: " + str(self._game._contract) + " (" + str(self._game.attackTargetPoints()) + " points)"
     
         self._pointsLabel.setText("Attack points: "
                                   + str(self._game.attackPoints())
@@ -844,10 +847,9 @@ class Game:
                 self._currentPlayer = p
                 cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
                 
-                if (not p._teamKnown
-                    and cards[p].isAsset()):
+                if (not p._teamKnown):
                     firstCard = None
-                    
+                        
                     if (len(cards)):
                         firstCard = list(cards.items())[0][1]
                         
@@ -857,9 +859,15 @@ class Game:
                                 firstCard = None
                             else:
                                 firstCard = list(cards.items())[1][1]
-                                
-                    if (firstCard and firstCard.isCardFamily()
-                        and firstCard.cardFamily().family() == self._calledKing):
+                                    
+                    if (cards[p].isAsset()):      
+                        if (firstCard and firstCard.isCardFamily()
+                            and firstCard.cardFamily().family() == self._calledKing):
+                            p._attackTeam = False
+                            p._teamKnown = True
+                    elif (cards[p].isFamilyCard()
+                          and firstCard == self._calledKing
+                          and cards[p].isFamilyCard() != self._calledKing):
                         p._attackTeam = False
                         p._teamKnown = True
 
