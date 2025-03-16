@@ -23,15 +23,15 @@ class GUI:
     def threePlayers(self):
         self._playerNumber = 3
         self._dialog.accept()
-    
+
     def fourPlayers(self):
         self._playerNumber = 4
         self._dialog.accept()
-    
+
     def fivePlayers(self):
         self._playerNumber = 5
         self._dialog.accept()
-    
+
     def displayTable(self, centerCards: list, displayCenterCards: bool = False):
         img = self._game.tableImage(self._showPlayers, centerCards, displayCenterCards)
         scale = 0.8
@@ -47,7 +47,7 @@ class GUI:
     def play(self) -> bool:
         self._dialog = QDialog()
         self._dialog.setWindowTitle("Choose a game")
-        
+
         layout = QVBoxLayout()
 
         threeButton = QPushButton("Three players", self._dialog)
@@ -56,15 +56,15 @@ class GUI:
         fourButton.clicked.connect(self.fourPlayers)
         fiveButton = QPushButton("Five players", self._dialog)
         fiveButton.clicked.connect(self.fivePlayers)
-        
+
         layout.addWidget(threeButton)
         layout.addWidget(fourButton)
         layout.addWidget(fiveButton)
-        
+
         self._dialog.setLayout(layout)
-        
+
         self._dialog.exec()
-            
+
         if (self._dialog.result() == QDialog.Rejected):
             return True
 
@@ -80,35 +80,35 @@ class GUI:
         self._tableLabel = QLabel(self._window)
         self._pointsLabel = QLabel("Attack points: 0 - Defence points: 0", self._window)
         self._pointsLabel.setAlignment(Qt.AlignCenter)
-        
+
         self._contractLabel = QLabel("Choose a contract", self._window)
         self._contractLabel.setVisible(False)
         self._contractComboBox = QComboBox(self._window)
         self._contractComboBox.setVisible(False)
 
         choices = []
-        
+
         for i in range(0, 4):
             choices.append(str(Family(i)))
-        
+
         self._kingLabel = QLabel("Call a king", self._window)
         self._kingLabel.setVisible(False)
         self._kingComboBox = QComboBox(self._window)
         self._kingComboBox.addItems(choices)
         self._kingComboBox.setVisible(False)
-        
+
         self._dogLabel = QLabel("Do a dog", self._window)
         self._dogLabel.setVisible(False)
         self._dogComboBoxes = []
         for i in range(0, 6):
             self._dogComboBoxes.append(QComboBox(self._window))
             self._dogComboBoxes[-1].setVisible(False)
-        
+
         self._cardLabel = QLabel("Play a card", self._window)
         self._cardLabel.setVisible(False)
         self._cardComboBox = QComboBox(self._window)
         self._cardComboBox.setVisible(False)
-        
+
         okButton = QPushButton("OK", self._window)
         okButton.clicked.connect(self.ok)
 
@@ -123,17 +123,17 @@ class GUI:
         verticalLayout.addWidget(self._cardLabel)
         verticalLayout.addWidget(self._cardComboBox)
         verticalLayout.addWidget(okButton)
-        
+
         horizontalLayout = QHBoxLayout()
         layout = QVBoxLayout()
-        
+
         layout.addWidget(self._tableLabel)
         layout.addWidget(self._pointsLabel)
         horizontalLayout.addLayout(layout)        
         horizontalLayout.addLayout(verticalLayout)
-        
+
         self._window.setLayout(horizontalLayout)
-        
+
         self._window.show()
 
         self._thread = threading.Thread(target = self._game.play, args = (self, ), daemon = True)
@@ -875,13 +875,13 @@ class Game:
                     if (cards[p].isAsset()):      
                         if (firstCard and firstCard.isFamilyCard()
                             and firstCard.familyCard().family() == self._calledKing):
-                            p._attackTeam = False
-                            p._teamKnown = True
+                            self._players[p]._attackTeam = False
+                            self._players[p]._teamKnown = True
                     elif (cards[p].isFamilyCard()
                           and firstCard == self._calledKing
                           and cards[p].isFamilyCard() != self._calledKing):
-                        p._attackTeam = False
-                        p._teamKnown = True
+                        self._players[p]._attackTeam = False
+                        self._players[p]._teamKnown = True
 
                 gui.displayTable([v for k, v in cards.items()], True)
                 QtTest.QTest.qWait(1000)
@@ -1210,7 +1210,7 @@ class Game:
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 image.paste(img, (int(x), int(y)))
                 tableImage = Image.alpha_composite(tableImage, image)
-        
+
         return tableImage
 
 app = QApplication(sys.argv)
