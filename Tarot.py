@@ -331,7 +331,7 @@ class FamilyCard:
         if (self._value):
             return 0.5
         else:
-            return self._head._value + 1 + 0.5
+            return int(self._head) + 1 + 0.5
 
     def __int__(self) -> int:
         return self.value()
@@ -1060,17 +1060,17 @@ class Game:
                     if (attackTeam):
                         for i in range(0, self.playerNumber):
                             if (self._players[i].defenceTeam()):
-                                self._players[i]._folds += list(assets.items())[foolIndex][1]
+                                self._players[i]._folds.append(list(assets.items())[foolIndex][1])
                                 del assets[i]
                                 break
                     else:
                         for i in range(0, self.playerNumber):
                             if (self._players[i].attackTeam()):
-                                self._players[i]._folds += list(assets.items())[foolIndex][1]
+                                self._players[i]._folds.append(list(assets.items())[foolIndex][1])
                                 del assets[i]
                                 break
                 else:
-                    self._players[p]._folds += list(assets.items())[foolIndex][1]
+                    self._players[p]._folds.append(assets.items())[foolIndex][1])
                     del assets[p]
             if (len(assets)):
                 p = list(assets.items())[-1][0]
