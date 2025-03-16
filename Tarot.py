@@ -1058,8 +1058,10 @@ class Game:
 
         if (len(assets)):
             a = [x[1] for x in assets.items()]
+            
             if (foolIndex != -1):
                 p = list(assets.items())[foolIndex][0]
+                
                 if (lastSet):
                     attackTeam = self._players[p].attackTeam()
                     
@@ -1078,12 +1080,18 @@ class Game:
                 else:
                     self._players[p]._folds.append(list(assets.items())[foolIndex][1])
                     del assets[p]
+                    
             if (len(assets)):
                 p = list(assets.items())[-1][0]
                 self._players[p]._folds += [x[1] for x in cards.items()]
                 return p
         
-        f = list(cards.items())[0][1].familyCard().family()
+        firstCard = list(cards.items())[0][1]
+        
+        if (firstCard.isAsset() and firstCard.asset().isFool()):
+            firstCard = list(cards.items())[1][1]
+        
+        f = firstCard.familyCard().family()
         p = list(families[f].items())[-1][0]
         self._players[p]._folds += [x[1] for x in cards.items()]
         
