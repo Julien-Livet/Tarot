@@ -1070,7 +1070,7 @@ class Game:
                                 del assets[i]
                                 break
                 else:
-                    self._players[p]._folds.append(assets.items())[foolIndex][1])
+                    self._players[p]._folds.append(list(assets.items())[foolIndex][1])
                     del assets[p]
             if (len(assets)):
                 p = list(assets.items())[-1][0]
