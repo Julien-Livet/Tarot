@@ -853,6 +853,12 @@ class Game:
                 self._currentPlayer = p
                 cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
                 
+                if (cards[p].isFamilyCard()
+                    and cards[p].familyCard().family() == self._calledKing
+                    and cards[p].familyCard().value() == 14):
+                    for player in self._players:
+                        player._teamKnown = True
+                    
                 if (not self._players[p]._teamKnown):
                     firstCard = None
                         
