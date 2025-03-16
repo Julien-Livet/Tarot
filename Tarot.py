@@ -894,10 +894,10 @@ class Game:
         if (self._contract == Contract.GuardWithout):
             for p in self._players:
                 if (p.defenceTeam()):
-                    p._cards += self._dog
+                    p._folds += self._dog
                     break
         else:
-            self._players[self._taker]._cards += self._dog
+            self._players[self._taker]._folds += self._dog
 
         self._dog = []
         
