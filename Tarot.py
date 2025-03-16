@@ -914,15 +914,6 @@ class Game:
 
         return points
 
-    def attackCards(self):
-        cards = []
-
-        for p in self._players:
-            if p.teamKnown() and p.attackTeam():
-                cards += p._cards
-        
-        return cards
-
     def attackFolds(self):
         folds = []
 
@@ -940,15 +931,6 @@ class Game:
                 points += p.points()
         
         return points
-
-    def defenceCards(self):
-        cards = []
-
-        for p in self._players:
-            if p.teamKnown() and p.defenceTeam():
-                cards += p._cards
-        
-        return cards
 
     def defenceFolds(self):
         folds = []
@@ -1100,10 +1082,8 @@ class Game:
         return p
 
     def attackTargetPoints(self):
-        cards = self.attackCards()
-        
         points = 56
-        oudlerCount = countOudlersForCards(cards)
+        oudlerCount = countOudlersForCards(self.attackFolds())
 
         if (oudlerCount == 3):
             points = 36
@@ -1115,10 +1095,8 @@ class Game:
         return points
 
     def defenceTargetPoints(self):
-        cards = self.defenceCards()
-        
         points = 56
-        oudlerCount = countOudlersForCards(cards)
+        oudlerCount = countOudlersForCards(self.defencefolds())
 
         if (oudlerCount == 3):
             points = 36
