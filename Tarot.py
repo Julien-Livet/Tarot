@@ -847,7 +847,7 @@ class Game:
                 self._currentPlayer = p
                 cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
                 
-                if (not p._teamKnown):
+                if (not self._players[p]._teamKnown):
                     firstCard = None
                         
                     if (len(cards)):
