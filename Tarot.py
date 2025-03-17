@@ -14,6 +14,8 @@ import threading
 cardSize = (56, 109)
 overCardRatio = 1 / 3
 
+assert(0 < overCardRatio and overCardRatio <= 1)
+
 def playerRadius(playerNumber: int) -> float:
     assert(3 <= playerNumber and playerNumber <= 5)
     
