@@ -3,7 +3,7 @@ import io
 import math
 from PIL import Image, ImageDraw, ImageFont
 from PyQt5 import QtTest
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import QCoreApplication, QLocale, QObject, Qt, QTimer, QTranslator
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QWidget
 import random
@@ -46,15 +46,15 @@ class GUI:
 
     def play(self) -> bool:
         self._dialog = QDialog()
-        self._dialog.setWindowTitle("Choose a game")
+        self._dialog.setWindowTitle(QCoreApplication.translate("play", "Choose a game"))
 
         layout = QVBoxLayout()
 
-        threeButton = QPushButton("Three players", self._dialog)
+        threeButton = QPushButton(QCoreApplication.translate("play", "Three players"), self._dialog)
         threeButton.clicked.connect(self.threePlayers)
-        fourButton = QPushButton("Four players", self._dialog)
+        fourButton = QPushButton(QCoreApplication.translate("play", "Four players"), self._dialog)
         fourButton.clicked.connect(self.fourPlayers)
-        fiveButton = QPushButton("Five players", self._dialog)
+        fiveButton = QPushButton(QCoreApplication.translate("play", "Five players"), self._dialog)
         fiveButton.clicked.connect(self.fivePlayers)
 
         layout.addWidget(threeButton)
@@ -75,13 +75,13 @@ class GUI:
         self._showPlayers[0] = True #self._showPlayers[random.randrange(self._playerNumber)] = True
 
         self._window = QDialog()
-        self._window.setWindowTitle("Tarot")
+        self._window.setWindowTitle(QCoreApplication.translate("play", "Tarot"))
 
         self._tableLabel = QLabel(self._window)
-        self._pointsLabel = QLabel("Attack points: 0 - Defence points: 0", self._window)
+        self._pointsLabel = QLabel(QCoreApplication.translate("play", "Attack points: 0 - Defence points: 0"), self._window)
         self._pointsLabel.setAlignment(Qt.AlignCenter)
 
-        self._contractLabel = QLabel("Choose a contract", self._window)
+        self._contractLabel = QLabel(QCoreApplication.translate("play", "Choose a contract"), self._window)
         self._contractLabel.setVisible(False)
         self._contractComboBox = QComboBox(self._window)
         self._contractComboBox.setVisible(False)
@@ -91,25 +91,25 @@ class GUI:
         for i in range(0, 4):
             choices.append(str(Family(i)))
 
-        self._kingLabel = QLabel("Call a king", self._window)
+        self._kingLabel = QLabel(QCoreApplication.translate("play", "Call a king"), self._window)
         self._kingLabel.setVisible(False)
         self._kingComboBox = QComboBox(self._window)
         self._kingComboBox.addItems(choices)
         self._kingComboBox.setVisible(False)
 
-        self._dogLabel = QLabel("Do a dog", self._window)
+        self._dogLabel = QLabel(QCoreApplication.translate("play", "Do a dog"), self._window)
         self._dogLabel.setVisible(False)
         self._dogComboBoxes = []
         for i in range(0, 6):
             self._dogComboBoxes.append(QComboBox(self._window))
             self._dogComboBoxes[-1].setVisible(False)
 
-        self._cardLabel = QLabel("Play a card", self._window)
+        self._cardLabel = QLabel(QCoreApplication.translate("play", "Play a card"), self._window)
         self._cardLabel.setVisible(False)
         self._cardComboBox = QComboBox(self._window)
         self._cardComboBox.setVisible(False)
 
-        okButton = QPushButton("OK", self._window)
+        okButton = QPushButton(QCoreApplication.translate("play", "OK"), self._window)
         okButton.clicked.connect(self.ok)
 
         verticalLayout = QVBoxLayout()
@@ -172,21 +172,27 @@ class GUI:
         take = ""
         
         if (self._game._calledKing):
-            take = "\nCalled king: " + str(self._game._calledKing)
+            take = QCoreApplication.translate("monitor", "\nCalled king: ") \
+                   + str(self._game._calledKing)
 
         if (self._game._contract):
-            take += "\nContract: " + str(self._game._contract) + " (" + str(self._game.attackTargetPoints()) + " points)"
+            take += QCoreApplication.translate("monitor", "\nContract: ") \
+                    + str(self._game._contract) \
+                    + QCoreApplication.translate("play", " ({0} points)") \
+                    .format(self._game.attackTargetPoints())
     
-        self._pointsLabel.setText("Attack points: "
-                                  + str(self._game.attackPoints())
-                                  + " - Defence points: "
-                                  + str(self._game.defencePoints())
+        self._pointsLabel.setText(QCoreApplication.translate("monitor",
+                                                             "Attack points: {0} - Defence points: {1}")
+                                  .format(self._game.attackPoints(),
+                                          self._game.defencePoints())
                                   + take)
     
         if (not self._thread.is_alive()):
             if (self._game.attackPoints() == 0
                 and self._game.defencePoints() == 0):
-                QMessageBox.information(self._window, "Game over", "Nobody takes!")
+                QMessageBox.information(self._window,
+                                        QCoreApplication.translate("monitor", "Game over"),
+                                        QCoreApplication.translate("monitor", "Nobody takes!"))
                 
                 self._window.close()
                 
@@ -194,20 +200,16 @@ class GUI:
             else:
                 if (self._game.attackWins()):
                      QMessageBox.information(self._window,
-                                             "Game over",
-                                             "Attack wins ("
-                                             + str(self._game.attackPoints())
-                                             + " points for "
-                                             + str(self._game.attackTargetPoints())
-                                             + " points)!")
+                                             QCoreApplication.translate("monitor", "Game over"),
+                                             QCoreApplication.translate("monitor", "Attack wins ({0} points for {1} points)!")
+                                             .format(self._game.attackPoints(),
+                                                     self._game.attackTargetPoints()))
                 else:
                      QMessageBox.information(self._window,
-                                             "Game over",
-                                             "Attack loses ("
-                                             + str(self._game.attackPoints())
-                                             + " points for "
-                                             + str(self._game.attackTargetPoints())
-                                             + " points)!")
+                                             QCoreApplication.translate("monitor", "Game over"),
+                                             QCoreApplication.translate("monitor", "Attack loses ({0} points for {1} points)!")
+                                             .format(self._game.attackPoints(),
+                                                     self._game.attackTargetPoints()))
                 
                 self._window.close()
 
@@ -235,6 +237,12 @@ class Asset:
         return self.value()
 
     def name(self) -> str:
+        if (self.value() == 0):
+            return QCoreApplication.translate("name", "Fool")
+            
+        return QCoreApplication.translate("name", "Asset {0}").format(self.value())
+
+    def imageName(self) -> str:
         return "asset-"+ str(self.value())
 
     def __str__(self) -> str:
@@ -249,17 +257,20 @@ class Contract(Enum):
     def __int__(self) -> int:
         return self.value
     
-    def __str__(self) -> str:
+    def name(self) -> str:
         if (self.value == 0):
-            return "Little"
+            return QCoreApplication.translate("name", "Little")
         elif (self.value == 1):
-            return "Guard"
+            return QCoreApplication.translate("name", "Guard")
         elif (self.value == 2):
-            return "Guard without"
+            return QCoreApplication.translate("name", "Guard without")
         elif (self.value == 3):
-            return "Guard against"
+            return QCoreApplication.translate("name", "Guard against")
         else:
             return ""
+
+    def __str__(self) -> str:
+        return self.name()
 
 class Family(Enum):
     Heart = 0   #Coeur
@@ -270,17 +281,20 @@ class Family(Enum):
     def __int__(self) -> int:
         return self.value
     
-    def __str__(self) -> str:
+    def name(self) -> str:
         if (self.value == 0):
-            return "Heart"
+            return QCoreApplication.translate("name", "Heart")
         elif (self.value == 1):
-            return "Diamond"
+            return QCoreApplication.translate("name", "Diamond")
         elif (self.value == 2):
-            return "Club"
+            return QCoreApplication.translate("name", "Club")
         elif (self.value == 3):
-            return "Spade"
+            return QCoreApplication.translate("name", "Spade")
         else:
             return ""
+
+    def __str__(self) -> str:
+        return self.name()
 
 class Head(Enum):
     Jack = 0
@@ -291,6 +305,21 @@ class Head(Enum):
     def __int__(self) -> int:
         return self.value
     
+    def name(self) -> str:
+        if (self.value == 0):
+            return QCoreApplication.translate("name", "Jack")
+        elif (self.value == 1):
+            return QCoreApplication.translate("name", "Knight")
+        elif (self.value == 2):
+            return QCoreApplication.translate("name", "Queen")
+        elif (self.value == 3):
+            return QCoreApplication.translate("name", "King")
+        else:
+            return ""
+
+    def __str__(self) -> str:
+        return self.name()
+
 class FamilyCard:
     def __init__(self, family: Family, head: Head = None, value: int = None):
         self._family = family
@@ -308,6 +337,66 @@ class FamilyCard:
         return self._family
         
     def name(self) -> str:
+        s = ""
+
+        if (self.value() == 1):
+            if (self._family == Family.Heart):
+                s = QCoreApplication.translate("name", "Ace of hearts").format(self.value())
+            elif (self._family == Family.Diamond):
+                s = QCoreApplication.translate("name", "Ace of diamonds").format(self.value())
+            elif (self._family == Family.Club):
+                s = QCoreApplication.translate("name", "Ace of clubs").format(self.value())
+            elif (self._family == Family.Spade):
+                s = QCoreApplication.translate("name", "Ace of spade").format(self.value())
+        elif (self.value() <= 10):
+            if (self._family == Family.Heart):
+                s = QCoreApplication.translate("name", "Heart {0}").format(self.value())
+            elif (self._family == Family.Diamond):
+                s = QCoreApplication.translate("name", "Diamond {0}").format(self.value())
+            elif (self._family == Family.Club):
+                s = QCoreApplication.translate("name", "Club {0}").format(self.value())
+            elif (self._family == Family.Spade):
+                s = QCoreApplication.translate("name", "Spade {0}").format(self.value())
+        elif (self.value() == 11):
+            if (self._family == Family.Heart):
+                s = QCoreApplication.translate("name", "Heart jack")
+            elif (self._family == Family.Diamond):
+                s = QCoreApplication.translate("name", "Diamond jack")
+            elif (self._family == Family.Club):
+                s = QCoreApplication.translate("name", "Club jack")
+            elif (self._family == Family.Spade):
+                s = QCoreApplication.translate("name", "Spade jack")
+        elif (self.value() == 12):
+            if (self._family == Family.Heart):
+                s = QCoreApplication.translate("name", "Heart knight")
+            elif (self._family == Family.Diamond):
+                s = QCoreApplication.translate("name", "Diamond knight")
+            elif (self._family == Family.Club):
+                s = QCoreApplication.translate("name", "Club knight")
+            elif (self._family == Family.Spade):
+                s = QCoreApplication.translate("name", "Spade knight")
+        elif (self.value() == 13):
+            if (self._family == Family.Heart):
+                s = QCoreApplication.translate("name", "Heart queen")
+            elif (self._family == Family.Diamond):
+                s = QCoreApplication.translate("name", "Diamond queen")
+            elif (self._family == Family.Club):
+                s = QCoreApplication.translate("name", "Club queen")
+            elif (self._family == Family.Spade):
+                s = QCoreApplication.translate("name", "Spade queen")
+        else: #elif (self.value() == 14):
+            if (self._family == Family.Heart):
+                s = QCoreApplication.translate("name", "Heart king")
+            elif (self._family == Family.Diamond):
+                s = QCoreApplication.translate("name", "Diamond king")
+            elif (self._family == Family.Club):
+                s = QCoreApplication.translate("name", "Club king")
+            elif (self._family == Family.Spade):
+                s = QCoreApplication.translate("name", "Spade king")
+
+        return s
+
+    def imageName(self) -> str:
         s = ""
         
         if self._family == Family.Heart:
@@ -388,9 +477,15 @@ class Card:
         else: #elif self.isFamilyCard():
             return self._familyCard.name()
 
+    def imageName(self) -> str:
+        if self.isAsset():
+            return self._asset.imageName()
+        else: #elif self.isFamilyCard():
+            return self._familyCard.imageName()
+
     def image(self):
-        image = Image.open("images/" + self.name() + ".png")
-        
+        image = Image.open("images/" + self.imageName() + ".png")
+
         image = image.resize(cardSize)
         
         return image
@@ -520,7 +615,7 @@ class Player:
             return None
         
         strContracts = {}
-        strContracts[-1] = "Pass"
+        strContracts[-1] = QCoreApplication.translate("chooseContract", "Pass")
         
         for i in range(0, 4):
             strContracts[i] = str(Contract(i))
@@ -733,8 +828,8 @@ class Player:
                                     add = False
 
             if (add):
-                strCards[i] = str(self._cards[i])
-                choices.append(str(self._cards[i]))
+                strCards[i] = self._cards[i].name()
+                choices.append(self._cards[i].name())
 
         if (self._isHuman):
             gui._cardLabel.setVisible(True)
@@ -843,7 +938,7 @@ class Game:
 
             self._dog = self._players[self._taker].doDog(self._dog, gui)
 
-        n = int((78 - len(self._dog)) / self._playerNumber)
+        n = (78 - len(self._dog)) // self._playerNumber
 
         for i in range(0, n):
             cards = {}
@@ -1000,7 +1095,7 @@ class Game:
         
         self._players = [Player() for x in range(0, self._playerNumber)]
         
-        n = int(78 / 3 / self._playerNumber)
+        n = 78 // 3 // self._playerNumber
         
         for i in range(0, n):
             for j in range(0, len(self._players)):
@@ -1145,7 +1240,7 @@ class Game:
             text = "?"
             
             if (self._players[i].teamKnown()):
-                text = "Attack" if self._players[i].attackTeam() else "Defence"
+                text = QCoreApplication.translate("tableImage", "Attack") if self._players[i].attackTeam() else QCoreApplication.translate("tableImage", "Defence")
         
             draw = ImageDraw.Draw(tableImage)
         
@@ -1192,7 +1287,10 @@ class Game:
         return tableImage
 
 app = QApplication(sys.argv)
-
+translator = QTranslator()
+translator.load("Tarot_" + QLocale.system().name() + ".qm")
+app.installTranslator(translator)
+    
 gui = GUI()
 
 if (not gui.play()):
