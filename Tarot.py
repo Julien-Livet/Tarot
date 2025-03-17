@@ -32,8 +32,8 @@ class GUI:
         self._playerNumber = 5
         self._dialog.accept()
 
-    def displayTable(self, centerCards: list, displayCenterCards: bool = False):
-        img = self._game.tableImage(self._showPlayers, centerCards, displayCenterCards)
+    def displayTable(self, centerCards: list, displayCenterCards: bool = False, centerCardsIsDog: bool = False):
+        img = self._game.tableImage(self._showPlayers, centerCards, displayCenterCards, centerCardsIsDog)
         scale = 0.8
         img = img.resize((int(img.width * scale),
                           int(img.height * scale)))
@@ -505,7 +505,8 @@ def countOudlersForCards(cards: list) -> int:
 
     return count
 
-def imageForCards(cards: list, shown: bool = True, ratio: float = 1 / 3):
+def imageForCards(cards: list, enabledCards: list, shown: bool = True, ratio: float = 1 / 3):
+    assert(len(cards) == len(enabledCards))
     assert(0.0 < ratio and ratio < 1.0)
 
     if (len(cards) == 0):
@@ -531,6 +532,14 @@ def imageForCards(cards: list, shown: bool = True, ratio: float = 1 / 3):
             im = firstImage
             
         image.paste(im, (int(i * firstImage.width * ratio), 0))
+        
+        if (shown):
+            if (not enabledCards[i]):
+                im = Image.new('RGBA', (im.width, im.height))
+                im.paste((0, 0, 0, 128), [0, 0, im.width, im.height])
+                img = Image.new('RGBA', (image.width, image.height))
+                img.paste(im, (int(i * firstImage.width * ratio), 0))
+                image = Image.alpha_composite(image, img)
     
     return image
 
@@ -599,10 +608,7 @@ class Player:
         
     def teamKnown(self) -> bool:
         return self._teamKnown
-        
-    def handImage(self):
-        return imageForCards(self._cards)
-        
+
     def chooseContract(self, gui: GUI, contract: Contract) -> Contract:
         possibleContracts = []
         
@@ -681,7 +687,7 @@ class Player:
         self._cards += dog
         self._cards = sortCards(self._cards)
         
-        gui.displayTable([])
+        gui.displayTable([], False, True)
 
         if (self._isHuman):
             comboBoxes = []
@@ -743,24 +749,13 @@ class Player:
         
         return sortCards(newDog)
 
-    def playCard(self, cards: dict, firstRound: bool, calledKing: Family) -> Card:
-        QtTest.QTest.qWait(1000)
-
-        card = None
-
-        strCards = {}
-        choices = []
-
+    def enabledCards(self, cards: list, firstRound: bool, calledKing: Family):
         cardAssets = []
-        
-        cardList = [x[1] for x in cards.items()]
-        
-        gui.displayTable(cardList, True)
-        
-        for card in cardList:
+
+        for card in cards:
             if (card.isAsset()):
                 cardAssets.append(card)
-                
+  
         cardAssets = sorted(cardAssets, key=lambda x: x.value())
         
         handAssets = []
@@ -777,13 +772,15 @@ class Player:
  
         handAssets = sorted(handAssets, key=lambda x: x.value())
         
+        enabledCards = []
+        
         for i in range(0, len(self._cards)):
             add = True
             
             ok = True
             
             if (firstRound):
-                if (len(cardList) == 0):
+                if (len(cards) == 0):
                     if (self._cards[i].isFamilyCard()
                         and self._cards[i].familyCard().family() == calledKing
                         and self._cards[i].familyCard().value() != 14):
@@ -793,12 +790,12 @@ class Player:
                     ok = True
             
             if (ok):
-                if (len(cardList)):
-                    firstCard = cardList[0]
+                if (len(cards)):
+                    firstCard = cards[0]
                     
                     if (firstCard.isAsset() and firstCard.asset().isFool()):
-                        if (len(cardList) > 1):
-                            firstCard = cardList[1]
+                        if (len(cards) > 1):
+                            firstCard = cards[1]
                         else:
                             firstCard = None
 
@@ -826,10 +823,29 @@ class Player:
                                 if (self._cards[i].familyCard().family() != firstCard.familyCard().family()
                                     and len(handAssets)):
                                     add = False
+            
+            enabledCards.append(add)
 
-            if (add):
+        return enabledCards
+
+    def playCard(self, cards: dict, firstRound: bool, calledKing: Family) -> Card:
+        QtTest.QTest.qWait(1000)
+
+        card = None
+
+        cardList = [x[1] for x in cards.items()]
+        
+        enabledCards = self.enabledCards(cardList, firstRound, calledKing)
+        
+        strCards = {}
+        choices = []
+
+        for i in range(0, len(enabledCards)):
+            if (enabledCards[i]):
                 strCards[i] = self._cards[i].name()
                 choices.append(self._cards[i].name())
+
+        gui.displayTable(cardList, True)
 
         if (self._isHuman):
             gui._cardLabel.setVisible(True)
@@ -871,6 +887,7 @@ class Game:
         self._foolPlayed = None
         self._foolCardGiven = False
         self._currentPlayer = None
+        self._firstRound = True
         assert(3 <= self._playerNumber and self._playerNumber <= 5)
     
     def play(self, gui):
@@ -879,7 +896,7 @@ class Game:
         for i in range(0, self._playerNumber):
             p = (self._firstPlayer + i) % self._playerNumber
             self._currentPlayer = p
-            gui.displayTable(self._dog, False)
+            gui.displayTable(self._dog, False, True)
             contract = self._players[p].chooseContract(gui, self._contract)
             if (contract):
                 self._taker = p
@@ -892,7 +909,7 @@ class Game:
         self._players[self._taker]._teamKnown = True
 
         self._currentPlayer = self._taker
-        gui.displayTable(self._dog, False)
+        gui.displayTable(self._dog, False, True)
 
         if (self._playerNumber == 5):
             self._calledKing = self._players[self._taker].callKing(gui)
@@ -904,7 +921,7 @@ class Game:
 
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
-            gui.displayTable(self._dog, True)
+            gui.displayTable(self._dog, True, True)
             QtTest.QTest.qWait(1000)
 
             kingInDog = False
@@ -946,7 +963,8 @@ class Game:
             for j in range(0, self._playerNumber):
                 p = (self._firstPlayer + j) % self._playerNumber
                 self._currentPlayer = p
-                cards[p] = self._players[p].playCard(cards, i == 0, self._calledKing)
+                self._firstRound = (i == 0)
+                cards[p] = self._players[p].playCard(cards, self._firstRound, self._calledKing)
                 
                 if (cards[p].isFamilyCard()
                     and cards[p].familyCard().family() == self._calledKing
@@ -1208,12 +1226,12 @@ class Game:
     def defenceWins(self):
         return not self.attackWins()
 
-    def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool):
+    def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False):
         assert(len(showPlayers) == self._playerNumber)
         
         tableImage = Image.new('RGBA', (1024, 768), color=(139, 69, 19))
         
-        centerCardsImage = imageForCards(centerCards, shown = showCenterCards)
+        centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
         
         if (centerCardsImage):
             tableImage.paste(centerCardsImage, (int((tableImage.width - centerCardsImage.width) / 2),
@@ -1261,7 +1279,14 @@ class Game:
                                     int(y - 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
-            playerCardsImage = imageForCards(self._players[i]._cards, shown = showPlayers[i])
+            enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing)
+            
+            if (centerCardsIsDog):
+                enabledCards = [True for c in self._players[i]._cards] 
+            
+            playerCardsImage = imageForCards(self._players[i]._cards,
+                                             enabledCards,
+                                             shown = showPlayers[i])
             
             if (playerCardsImage):
                 img = playerCardsImage
