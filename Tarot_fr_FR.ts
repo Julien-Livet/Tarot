@@ -257,7 +257,7 @@ Contrat : </translation>
     <message>
         <location filename="Tarot.py" line="195"/>
         <source>Nobody takes!</source>
-        <translation>Personne n&apos;a pris!</translation>
+        <translation type="unfinished">Personne n&apos;a pris !</translation>
     </message>
     <message>
         <location filename="Tarot.py" line="204"/>
