@@ -3,8 +3,8 @@ import io
 import math
 from PIL import Image, ImageDraw, ImageFont
 from PyQt5 import QtTest
-from PyQt5.QtCore import QCoreApplication, QLocale, QObject, Qt, QTimer, QTranslator
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import QCoreApplication, QLocale, QObject, Qt, QPointF, QRectF, QTimer, QTranslator
+from PyQt5.QtGui import QPixmap, QPolygonF, QTransform
 from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QWidget
 import random
 import sys
@@ -12,9 +12,37 @@ import time
 import threading
 
 cardSize = (56, 109)
+overCardRatio = 1 / 3
 
-class GUI:
+def playerRadius(playerNumber: int) -> float:
+    assert(3 <= playerNumber and playerNumber <= 5)
+    
+    if (playerNumber == 4):
+        return 275
+    elif (playerNumber == 3):
+        return 225
+    elif (playerNumber == 5):
+        return 300
+
+class TableLabel(QLabel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._mousePressPos = None
+        self._pressed = False
+        
+    def mousePressEvent(self, event):
+        if (not self._pressed):
+            self._mousePressPos = event.pos()
+        else:
+            self._mousePressPos = None
+
+    def mouseReleaseEvent(self, event):
+        self._mousePressPos = None
+        self._pressed = False
+
+class GUI(QObject):
     def __init__(self):
+        super().__init__()
         self._playerNumber = 5
         self._window = None
         self._dialog = None
@@ -34,15 +62,18 @@ class GUI:
 
     def displayTable(self, centerCards: list, displayCenterCards: bool = False, centerCardsIsDog: bool = False):
         img = self._game.tableImage(self._showPlayers, centerCards, displayCenterCards, centerCardsIsDog)
-        scale = 0.8
-        img = img.resize((int(img.width * scale),
-                          int(img.height * scale)))
 
         byteArray = io.BytesIO()
         img.save(byteArray, format = 'PNG')
         pixmap = QPixmap()
         pixmap.loadFromData(byteArray.getvalue())
         self._tableLabel.setPixmap(pixmap)
+
+    def comboBoxActivated(self, index: int):
+        for i in range(0, 6):
+            if (self._dogComboBoxes[i] == self.sender()):
+                self._dogIndex = i
+                break
 
     def play(self) -> bool:
         self._dialog = QDialog()
@@ -77,7 +108,7 @@ class GUI:
         self._window = QDialog()
         self._window.setWindowTitle(QCoreApplication.translate("play", "Tarot"))
 
-        self._tableLabel = QLabel(self._window)
+        self._tableLabel = TableLabel(self._window)
         self._pointsLabel = QLabel(QCoreApplication.translate("play", "Attack points: 0 - Defence points: 0"), self._window)
         self._pointsLabel.setAlignment(Qt.AlignCenter)
 
@@ -103,6 +134,7 @@ class GUI:
         for i in range(0, 6):
             self._dogComboBoxes.append(QComboBox(self._window))
             self._dogComboBoxes[-1].setVisible(False)
+            self._dogComboBoxes[-1].activated.connect(self.comboBoxActivated)
 
         self._cardLabel = QLabel(QCoreApplication.translate("play", "Play a card"), self._window)
         self._cardLabel.setVisible(False)
@@ -118,6 +150,7 @@ class GUI:
         verticalLayout.addWidget(self._kingLabel)
         verticalLayout.addWidget(self._kingComboBox)
         verticalLayout.addWidget(self._dogLabel)
+        self._dogIndex = 0
         for i in range(0, 6):
             verticalLayout.addWidget(self._dogComboBoxes[i])
         verticalLayout.addWidget(self._cardLabel)
@@ -133,8 +166,6 @@ class GUI:
         horizontalLayout.addLayout(verticalLayout)
 
         self._window.setLayout(horizontalLayout)
-
-        self._window.show()
 
         self._thread = threading.Thread(target = self._game.play, args = (self, ), daemon = True)
         self._thread.start()
@@ -153,6 +184,8 @@ class GUI:
         return False
     
     def centerWindow(self):
+        self._window.show()
+        
         screen_geometry = QApplication.desktop().availableGeometry()
         screen_width = screen_geometry.width()
         screen_height = screen_geometry.height()
@@ -186,6 +219,63 @@ class GUI:
                                   .format(self._game.attackPoints(),
                                           self._game.defencePoints())
                                   + take)
+                                  
+        if (self._tableLabel._mousePressPos):
+            for i in range(0, self._game._playerNumber):
+                if (i == self._game._currentPlayer):
+                    radius = playerRadius(self._game._playerNumber)
+                    
+                    positions = [(self._tableLabel.pixmap().width() // 2,
+                                  self._tableLabel.pixmap().height() // 2 + radius)]
+                    angles = [0]
+
+                    for k in range(1, self._playerNumber):
+                        angles.append(angles[-1] - 360 / self._playerNumber)
+                        x = self._tableLabel.pixmap().width() / 2 + radius * math.sin(math.radians(angles[-1]))
+                        y = self._tableLabel.pixmap().height() / 2 + radius * math.cos(math.radians(angles[-1]))
+                        positions.append((x, y))
+
+                    n = len(self._game._players[i]._cards)
+                    w = (n - 1) * cardSize[0] * overCardRatio + cardSize[0]
+
+                    for j in range(0, n):
+                        rect = QRectF(int(j * cardSize[0] * overCardRatio), 0, cardSize[0] * (1 if j == n - 1 else overCardRatio), cardSize[1])
+                        transform = QTransform()
+                        transform.translate(rect.center().x(), rect.center().y())
+                        transform.rotate(angles[i])
+                        transform.translate(-rect.center().x(), -rect.center().y())
+                        transform.translate(positions[i][0] - w / 2,
+                                            positions[i][1] - cardSize[1] / 2)
+        
+                        points = [transform.map(rect.topLeft()),
+                                  transform.map(rect.topRight()),
+                                  transform.map(rect.bottomRight()),
+                                  transform.map(rect.bottomLeft()),
+                                  transform.map(rect.topLeft())]
+                        
+                        polygon = QPolygonF(points)
+                        
+                        if (polygon.containsPoint(self._tableLabel._mousePressPos, Qt.WindingFill)):
+                            enabledCards = []
+                        
+                            if (self._dogLabel.isVisible()):
+                                enabledCards = self._game._players[i].enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, True)
+                            else:
+                                enabledCards = self._game._players[i].enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing)
+                            
+                            if (enabledCards[j]):
+                                if (self._cardComboBox.isVisible()):
+                                    self._cardComboBox.setCurrentText(self._game._players[i]._cards[j].name())
+                                elif (self._dogLabel.isVisible()):
+                                    self._tableLabel._mousePressPos = None
+                                    self._dogComboBoxes[self._dogIndex].setCurrentText(self._game._players[i]._cards[j].name())
+                                    self._dogIndex += 1
+                                    if (not self._dogComboBoxes[self._dogIndex].isVisible()):
+                                        self._dogIndex = 0
+                            
+                            break
+
+                    break
     
         if (not self._thread.is_alive()):
             if (self._game.attackPoints() == 0
@@ -505,9 +595,8 @@ def countOudlersForCards(cards: list) -> int:
 
     return count
 
-def imageForCards(cards: list, enabledCards: list, shown: bool = True, ratio: float = 1 / 3):
+def imageForCards(cards: list, enabledCards: list, shown: bool = True):
     assert(len(cards) == len(enabledCards))
-    assert(0.0 < ratio and ratio < 1.0)
 
     if (len(cards) == 0):
         return None
@@ -521,7 +610,7 @@ def imageForCards(cards: list, enabledCards: list, shown: bool = True, ratio: fl
         
         firstImage = firstImage.resize(cardSize)
     
-    image = Image.new('RGBA', (firstImage.width + int((len(cards) - 1) * firstImage.width * ratio), firstImage.height))
+    image = Image.new('RGBA', (firstImage.width + int((len(cards) - 1) * firstImage.width * overCardRatio), firstImage.height))
     
     for i in range(0, len(cards)):
         im = None
@@ -531,14 +620,14 @@ def imageForCards(cards: list, enabledCards: list, shown: bool = True, ratio: fl
         else:
             im = firstImage
             
-        image.paste(im, (int(i * firstImage.width * ratio), 0))
+        image.paste(im, (int(i * firstImage.width * overCardRatio), 0))
         
         if (shown):
             if (not enabledCards[i]):
                 im = Image.new('RGBA', (im.width, im.height))
                 im.paste((0, 0, 0, 128), [0, 0, im.width, im.height])
                 img = Image.new('RGBA', (image.width, image.height))
-                img.paste(im, (int(i * firstImage.width * ratio), 0))
+                img.paste(im, (int(i * firstImage.width * overCardRatio), 0))
                 image = Image.alpha_composite(image, img)
     
     return image
@@ -749,7 +838,20 @@ class Player:
         
         return sortCards(newDog)
 
-    def enabledCards(self, cards: list, firstRound: bool, calledKing: Family):
+    def enabledCards(self, cards: list, firstRound: bool, calledKing: Family, doDog = False):
+        enabledCards = []
+        
+        if (doDog):
+            for i in range(0, len(self._cards)):
+                if (not (self._cards[i].isAsset()
+                         or (self._cards[i].isFamilyCard()
+                         and self._cards[i].familyCard().value() == 14))):
+                        enabledCards.append(True)
+                else:
+                    enabledCards.append(False)
+            
+            return enabledCards
+    
         cardAssets = []
 
         for card in cards:
@@ -771,8 +873,6 @@ class Player:
                 handFamilies[self._cards[i].familyCard().family()].append(self._cards[i])
  
         handAssets = sorted(handAssets, key=lambda x: x.value())
-        
-        enabledCards = []
         
         for i in range(0, len(self._cards)):
             add = True
@@ -890,6 +990,7 @@ class Game:
         self._foolCardGiven = False
         self._currentPlayer = None
         self._firstRound = True
+        self._centerCards = []
         assert(3 <= self._playerNumber and self._playerNumber <= 5)
     
     def play(self, gui):
@@ -967,6 +1068,7 @@ class Game:
                 self._currentPlayer = p
                 self._firstRound = (i == 0)
                 cards[p] = self._players[p].playCard(cards, self._firstRound, self._calledKing)
+                self._centerCards = [x[1] for x in cards.items()]
                 
                 if (cards[p].isFamilyCard()
                     and cards[p].familyCard().family() == self._calledKing
@@ -1105,6 +1207,8 @@ class Game:
         self._foolPlayed = None
         self._foolCardGiven = False
         self._cards = []
+        self._firstRound = True
+        self._centerCards = []
         for i in range(0, 4):
             for j in range(1, 11):
                 self._cards.append(Card(familyCard = FamilyCard(family = Family(i), value = j)))
@@ -1124,9 +1228,7 @@ class Game:
                 self._players[j]._cards += self._cards[0:3]
                 self._cards = self._cards[3:]
         
-        #for p in self._players:
-        for i in range(0, self._playerNumber):
-            player = self._players[i]
+        for player in self._players:
             player._cards = sortCards(player._cards)
         
         self._dog = sortCards(self._cards)
@@ -1241,15 +1343,10 @@ class Game:
             tableImage.paste(centerCardsImage, (int((tableImage.width - centerCardsImage.width) / 2),
                                                 int((tableImage.height - centerCardsImage.height) / 2)))
         
-        radius = 300
+        radius = playerRadius(self._playerNumber)
         
-        if (self._playerNumber == 4):
-            radius = 275
-        elif (self._playerNumber == 3):
-            radius = 225
-        
-        positions = [(int(tableImage.width / 2),
-                      int(tableImage.height / 2 + radius))]
+        positions = [(tableImage.width // 2,
+                      tableImage.height // 2 + radius)]
         angles = [0]
 
         for i in range(1, self._playerNumber):
@@ -1283,11 +1380,8 @@ class Game:
                                     int(y - 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
-            enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing)
-            
-            if (centerCardsIsDog):
-                enabledCards = [True for c in self._players[i]._cards] 
-            
+            enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
+
             playerCardsImage = imageForCards(self._players[i]._cards,
                                              enabledCards,
                                              shown = showPlayers[i])
