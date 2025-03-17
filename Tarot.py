@@ -363,10 +363,10 @@ class Contract(Enum):
         return self.name()
 
 class Family(Enum):
-    Heart = 0   #Coeur
-    Diamond = 1 #Carreau
-    Club = 2    #Trèfle
-    Spade = 3   #Pique
+    Heart = 0
+    Diamond = 1
+    Club = 2
+    Spade = 3
 
     def __int__(self) -> int:
         return self.value
