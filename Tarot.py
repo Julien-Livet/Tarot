@@ -799,30 +799,30 @@ class Player:
                         else:
                             firstCard = None
 
-                    if (firstCard):
-                        if (firstCard.isAsset()):
-                            if (len(handAssets)):
-                                if (self._cards[i].isAsset()):
-                                    if (not self._cards[i].asset().isFool()
-                                        and handAssets[-1].value() > cardAssets[-1].value()
+                if (firstCard):
+                    if (firstCard.isAsset()):
+                        if (len(handAssets)):
+                            if (self._cards[i].isAsset()):
+                                if (not self._cards[i].asset().isFool()
+                                    and handAssets[-1].value() > cardAssets[-1].value()
+                                    and self._cards[i].asset().value() < cardAssets[-1].value()):
+                                    add = False
+                            else:
+                                add = False
+                    else:
+                        if (self._cards[i].isAsset()):
+                            if (len(handFamilies[firstCard.familyCard().family()])):
+                                if (not self._cards[i].asset().isFool()):
+                                    add = False
+                            else:
+                                if (len(cardAssets)):
+                                    if (handAssets[-1].value() > cardAssets[-1].value()
                                         and self._cards[i].asset().value() < cardAssets[-1].value()):
                                         add = False
-                                else:
-                                    add = False
                         else:
-                            if (self._cards[i].isAsset()):
-                                if (len(handFamilies[firstCard.familyCard().family()])):
-                                    if (not self._cards[i].asset().isFool()):
-                                        add = False
-                                else:
-                                    if (len(cardAssets)):
-                                        if (handAssets[-1].value() > cardAssets[-1].value()
-                                            and self._cards[i].asset().value() < cardAssets[-1].value()):
-                                            add = False
-                            else:
-                                if (self._cards[i].familyCard().family() != firstCard.familyCard().family()
-                                    and len(handAssets)):
-                                    add = False
+                            if (self._cards[i].familyCard().family() != firstCard.familyCard().family()
+                                and len(handAssets)):
+                                add = False
             
             enabledCards.append(add)
 
