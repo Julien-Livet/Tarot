@@ -971,6 +971,8 @@ class Game:
                 if (cards[p].isFamilyCard()
                     and cards[p].familyCard().family() == self._calledKing
                     and cards[p].familyCard().value() == 14):
+                    self._players[p]._attackTeam = True
+                    
                     for player in self._players:
                         player._teamKnown = True
                     
