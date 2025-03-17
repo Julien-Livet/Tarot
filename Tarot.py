@@ -1204,7 +1204,7 @@ class Game:
 
         if (oudlerCount == 3):
             points = 36
-        elif (points == 2):
+        elif (oudlerCount == 2):
             points = 41
         elif (oudlerCount == 1):
             points = 51
@@ -1217,7 +1217,7 @@ class Game:
 
         if (oudlerCount == 3):
             points = 36
-        elif (points == 2):
+        elif (oudlerCount == 2):
             points = 41
         elif (oudlerCount == 1):
             points = 51
