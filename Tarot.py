@@ -270,9 +270,7 @@ class GUI(QObject):
                                                                                self._game._calledKing,
                                                                                self._dogLabel.isVisible())
 
-                            print(self._game._players[i]._cards[j].name())
                             if (enabledCards[j]):
-                                print("ok")
                                 if (self._cardComboBox.isVisible()):
                                     self._cardComboBox.setCurrentText(self._game._players[i]._cards[j].name())
                                 elif (self._dogLabel.isVisible()):
