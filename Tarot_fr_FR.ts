@@ -415,7 +415,7 @@ Contrat : </translation>
     <message>
         <location filename="Tarot.py" line="376"/>
         <source>Club knight</source>
-        <translation>Cavalier de frèle</translation>
+        <translation>Cavalier de trèfle</translation>
     </message>
     <message>
         <location filename="Tarot.py" line="378"/>
