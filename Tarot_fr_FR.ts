@@ -257,7 +257,7 @@ Contrat : </translation>
     <message>
         <location filename="Tarot.py" line="195"/>
         <source>Nobody takes!</source>
-        <translation type="unfinished">Personne n&apos;a pris !</translation>
+        <translation>Personne n&apos;a pris !</translation>
     </message>
     <message>
         <location filename="Tarot.py" line="204"/>
@@ -287,7 +287,7 @@ Contrat : </translation>
     <message>
         <location filename="Tarot.py" line="211"/>
         <source>Attack loses ({0} points for {1} points)!</source>
-        <translation>L&apos;attaque a perdu ({0} points pour {2} points) !</translation>
+        <translation>L&apos;attaque a perdu ({0} points pour {1} points) !</translation>
     </message>
 </context>
 <context>

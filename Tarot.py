@@ -790,6 +790,8 @@ class Player:
                     ok = True
             
             if (ok):
+                firstCard = None
+            
                 if (len(cards)):
                     firstCard = cards[0]
                     
