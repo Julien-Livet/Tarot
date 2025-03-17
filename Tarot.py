@@ -4,27 +4,30 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 from PyQt5 import QtTest
 from PyQt5.QtCore import QCoreApplication, QLocale, QObject, Qt, QPointF, QRectF, QTimer, QTranslator
-from PyQt5.QtGui import QPixmap, QPolygonF, QTransform
-from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QWidget
+from PyQt5.QtGui import QKeySequence, QPixmap, QPolygonF, QTransform
+from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QShortcut, QWidget
 import random
 import sys
 import time
 import threading
 
-cardSize = (56, 109)
 overCardRatio = 1 / 3
+globalRatio = 0.8
 
 assert(0 < overCardRatio and overCardRatio <= 1)
+assert(0 < globalRatio and globalRatio <= 1)
+
+cardSize = (int(56 * globalRatio), int(109 * globalRatio))
 
 def playerRadius(playerNumber: int) -> float:
     assert(3 <= playerNumber and playerNumber <= 5)
     
     if (playerNumber == 4):
-        return 275
+        return 275 * globalRatio
     elif (playerNumber == 3):
-        return 225
+        return 225 * globalRatio
     elif (playerNumber == 5):
-        return 300
+        return 300 * globalRatio
 
 class TableLabel(QLabel):
     def __init__(self, parent):
@@ -145,6 +148,8 @@ class GUI(QObject):
 
         okButton = QPushButton(QCoreApplication.translate("play", "OK"), self._window)
         okButton.clicked.connect(self.ok)
+        shortcut = QShortcut(QKeySequence(Qt.Key_Return), okButton)
+        shortcut.activated.connect(okButton.click)
 
         verticalLayout = QVBoxLayout()
         verticalLayout.addWidget(self._contractLabel)
@@ -256,16 +261,18 @@ class GUI(QObject):
                                   transform.map(rect.topLeft())]
                         
                         polygon = QPolygonF(points)
-                        
+                       
                         if (polygon.containsPoint(self._tableLabel._mousePressPos, Qt.WindingFill)):
                             enabledCards = []
                         
-                            if (self._dogLabel.isVisible()):
-                                enabledCards = self._game._players[i].enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, True)
-                            else:
-                                enabledCards = self._game._players[i].enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing)
-                            
+                            enabledCards = self._game._players[i].enabledCards(self._game._centerCards,
+                                                                               self._game._firstRound,
+                                                                               self._game._calledKing,
+                                                                               self._dogLabel.isVisible())
+
+                            print(self._game._players[i]._cards[j].name())
                             if (enabledCards[j]):
+                                print("ok")
                                 if (self._cardComboBox.isVisible()):
                                     self._cardComboBox.setCurrentText(self._game._players[i]._cards[j].name())
                                 elif (self._dogLabel.isVisible()):
@@ -287,8 +294,6 @@ class GUI(QObject):
                                         QCoreApplication.translate("monitor", "Nobody takes!"))
                 
                 self._window.close()
-                
-                self.play()
             else:
                 if (self._game.attackWins()):
                      QMessageBox.information(self._window,
@@ -1066,6 +1071,7 @@ class Game:
             cards = {}
 
             for j in range(0, self._playerNumber):
+                self._centerCards = []
                 p = (self._firstPlayer + j) % self._playerNumber
                 self._currentPlayer = p
                 self._firstRound = (i == 0)
@@ -1088,7 +1094,7 @@ class Game:
                         
                         if (firstCard.isAsset()
                             and firstCard.asset().isFool()):
-                            if (len(cards) > 1):
+                            if (len(list(cards.items())) > 1):
                                 firstCard = None
                             else:
                                 firstCard = list(cards.items())[1][1]
@@ -1337,7 +1343,7 @@ class Game:
     def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False):
         assert(len(showPlayers) == self._playerNumber)
         
-        tableImage = Image.new('RGBA', (1024, 768), color=(139, 69, 19))
+        tableImage = Image.new('RGBA', (int(1024 * globalRatio), int(768 * globalRatio)), color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
         
