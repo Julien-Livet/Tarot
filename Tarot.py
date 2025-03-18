@@ -293,17 +293,17 @@ class GUI(QObject):
                 self._window.close()
             else:
                 if (self._game.attackWins()):
-                     QMessageBox.information(self._window,
-                                             QCoreApplication.translate("monitor", "Game over"),
-                                             QCoreApplication.translate("monitor", "Attack wins ({0} points for {1} points)!")
-                                             .format(self._game.attackPoints(),
-                                                     self._game.attackTargetPoints()))
+                    QMessageBox.information(self._window,
+                                            QCoreApplication.translate("monitor", "Game over"),
+                                            QCoreApplication.translate("monitor", "Attack wins ({0} points for {1} points)!")
+                                            .format(self._game.attackPoints(),
+                                                    self._game.attackTargetPoints()))
                 else:
-                     QMessageBox.information(self._window,
-                                             QCoreApplication.translate("monitor", "Game over"),
-                                             QCoreApplication.translate("monitor", "Attack loses ({0} points for {1} points)!")
-                                             .format(self._game.attackPoints(),
-                                                     self._game.attackTargetPoints()))
+                    QMessageBox.information(self._window,
+                                            QCoreApplication.translate("monitor", "Game over"),
+                                            QCoreApplication.translate("monitor", "Attack loses ({0} points for {1} points)!")
+                                            .format(self._game.attackPoints(),
+                                                    self._game.attackTargetPoints()))
                 
                 self._window.close()
 
@@ -997,7 +997,7 @@ class Game:
         self._centerCards = []
         assert(3 <= self._playerNumber and self._playerNumber <= 5)
     
-    def play(self, gui; GUI):
+    def play(self, gui: GUI):
         self._firstPlayer = random.randrange(self._playerNumber)
         
         for i in range(0, self._playerNumber):

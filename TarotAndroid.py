@@ -4,12 +4,14 @@ import kivy.app
 import kivy.clock
 import kivy.core
 import kivy.core.image
+import kivy.graphics
 import kivy.uix
 import kivy.uix.boxlayout
 import kivy.uix.button
 import kivy.uix.gridlayout
 import kivy.uix.image
 import kivy.uix.label
+import kivy.uix.popup
 import kivy.uix.spinner
 import math
 from PIL import Image, ImageDraw, ImageFont
@@ -25,6 +27,86 @@ assert(0 < overCardRatio and overCardRatio <= 1)
 assert(0 < globalRatio and globalRatio <= 1)
 
 cardSize = (int(56 * globalRatio), int(109 * globalRatio))
+
+def point_in_polygon(point, polygon):
+    """
+    Algorithme de ray-casting pour vérifier si un point est dans un polygone.
+    :param point: tuple (x, y) du point à tester.
+    :param polygon: liste de tuples [(x1, y1), (x2, y2), ..., (xn, yn)] représentant les sommets du polygone.
+    :return: True si le point est à l'intérieur, False sinon.
+    """
+    x, y = point
+    inside = False
+    n = len(polygon)
+    p1x, p1y = polygon[0]
+    
+    for i in range(n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
+
+class Transform:
+    def __init__(self):
+        # La matrice de transformation initiale (identité 3x3)
+        # [ a, c, e ]
+        # [ b, d, f ]
+        # [ 0, 0, 1 ]
+        self.matrix = [1, 0, 0, 1, 0, 0]  # a, b, c, d, e, f (identité)
+
+    def rotate(self, angle):
+        """ Applique une rotation à la matrice de transformation (en degrés) """
+        radians = math.radians(angle)  # Convertir l'angle en radians
+        cos_a = math.cos(radians)
+        sin_a = math.sin(radians)
+        
+        # Matrice de rotation
+        rotation_matrix = [cos_a, -sin_a, 0,
+                           sin_a, cos_a, 0,
+                           0, 0, 1]
+        
+        # Appliquer la rotation à la matrice existante
+        self._apply_matrix(rotation_matrix)
+
+    def translate(self, dx, dy):
+        """ Applique une translation à la matrice de transformation """
+        # Matrice de translation
+        translation_matrix = [1, 0, dx,
+                              0, 1, dy,
+                              0, 0, 1]
+        
+        # Appliquer la translation à la matrice existante
+        self._apply_matrix(translation_matrix)
+
+    def _apply_matrix(self, new_matrix):
+        """ Applique une matrice de transformation à la matrice actuelle """
+        # Effectue une multiplication de matrices 3x3
+        a, b, e = self.matrix[0], self.matrix[1], self.matrix[4]
+        c, d, f = self.matrix[2], self.matrix[3], self.matrix[5]
+
+        new_a = a * new_matrix[0] + b * new_matrix[3]
+        new_b = a * new_matrix[1] + b * new_matrix[4]
+        new_e = a * new_matrix[2] + b * new_matrix[5] + e
+        
+        new_c = c * new_matrix[0] + d * new_matrix[3]
+        new_d = c * new_matrix[1] + d * new_matrix[4]
+        new_f = c * new_matrix[2] + d * new_matrix[5] + f
+        
+        # Mettre à jour la matrice
+        self.matrix = [new_a, new_b, new_c, new_d, new_e, new_f]
+
+    def apply(self, x, y):
+        """ Applique la transformation (rotation, translation) à un point (x, y) """
+        new_x = self.matrix[0] * x + self.matrix[1] * y + self.matrix[4]
+        new_y = self.matrix[2] * x + self.matrix[3] * y + self.matrix[5]
+        return new_x, new_y
 
 def playerRadius(playerNumber: int) -> float:
     assert(3 <= playerNumber and playerNumber <= 5)
@@ -53,10 +135,16 @@ class TableLabel(kivy.uix.image.Image):
             self.img = kivy.core.image.Image(self.img_byte_arr, ext="png")
             self.texture = self.img.texture
 
+    def imageWidth(self):
+        return self.img.texture.size[0]
+
+    def imageHeight(self):
+        return self.img.texture.size[1]
+
     def on_touch_up(self, touch):
         super().on_touch_up(touch)
         if (not self._pressed):
-            self._mousePressPos = touch
+            self._mousePressPos = (touch.x, touch.y)
         else:
             self._mousePressPos = None
 
@@ -66,12 +154,13 @@ class TableLabel(kivy.uix.image.Image):
         self._pressed = False
 
 class Window(kivy.uix.gridlayout.GridLayout):
-    def __init__(self):
+    def __init__(self, app: kivy.app.App):
         super().__init__(cols = 2)
         self._playerNumber = 5
         self._window = None
         self._dialog = None
         self._ok = False
+        self._app = app
 
         layout = kivy.uix.boxlayout.BoxLayout(orientation = "vertical")
 
@@ -126,8 +215,7 @@ class Window(kivy.uix.gridlayout.GridLayout):
 
         self._tableLabel = TableLabel()
         self._pointsLabel = kivy.uix.label.Label(text = "Attack points: 0 - Defence points: 0")
-        #self.img = kivy.core.image.Image("images/back.png")
-        #self._tableLabel.texture = self.img.texture
+
         self._contractLabel = kivy.uix.label.Label(text = "Choose a contract")
         self._contractLabel.opacity = 0
         self._contractComboBox = kivy.uix.spinner.Spinner()
@@ -207,52 +295,55 @@ class Window(kivy.uix.gridlayout.GridLayout):
                 if (i == self._game._currentPlayer):
                     radius = playerRadius(self._game._playerNumber)
                     
-                    positions = [(self._tableLabel.pixmap().width() // 2,
-                                  self._tableLabel.pixmap().height() // 2 + radius)]
+                    positions = [(self._tableLabel.imageWidth() // 2,
+                                  self._tableLabel.imageHeight() // 2 + radius)]
                     angles = [0]
 
                     for k in range(1, self._playerNumber):
                         angles.append(angles[-1] - 360 / self._playerNumber)
-                        x = self._tableLabel.pixmap().width() / 2 + radius * math.sin(math.radians(angles[-1]))
-                        y = self._tableLabel.pixmap().height() / 2 + radius * math.cos(math.radians(angles[-1]))
+                        x = self._tableLabel.imageWidth() / 2 + radius * math.sin(math.radians(angles[-1]))
+                        y = self._tableLabel.imageHeight() / 2 + radius * math.cos(math.radians(angles[-1]))
                         positions.append((x, y))
 
                     n = len(self._game._players[i]._cards)
                     w = (n - 1) * cardSize[0] * overCardRatio + cardSize[0]
 
                     for j in range(0, n):
-                        rect = QRectF(int(j * cardSize[0] * overCardRatio), 0, cardSize[0] * (1 if j == n - 1 else overCardRatio), cardSize[1])
-                        transform = QTransform()
-                        transform.translate(rect.center().x(), rect.center().y())
+                        rect = kivy.graphics.Rectangle(pos = (int(j * cardSize[0] * overCardRatio), 0),
+                                                       size = (cardSize[0] * (1 if j == n - 1 else overCardRatio), cardSize[1]))
+                        transform = Transform()
+                        
+                        rect_center_x = rect.pos[0] + rect.size[0] / 2
+                        rect_center_y = rect.pos[1] + rect.size[1] / 2
+                        
+                        transform.translate(rect_center_x, rect_center_y)
                         transform.rotate(angles[i])
-                        transform.translate(-rect.center().x(), -rect.center().y())
+                        transform.translate(-rect_center_x, -rect_center_y)
                         transform.translate(positions[i][0] - w / 2,
                                             positions[i][1] - cardSize[1] / 2)
         
-                        points = [transform.map(rect.topLeft()),
-                                  transform.map(rect.topRight()),
-                                  transform.map(rect.bottomRight()),
-                                  transform.map(rect.bottomLeft()),
-                                  transform.map(rect.topLeft())]
+                        polygon = [transform.apply(rect.pos[0], rect.pos[1]),
+                                   transform.apply(rect.pos[0] + rect.size[0], rect.pos[1]),
+                                   transform.apply(rect.pos[0] + rect.size[0], rect.pos[1] + rect.size[1]),
+                                   transform.apply(rect.pos[0], rect.pos[1] + rect.size[1]),
+                                   transform.apply(rect.pos[0], rect.pos[1])]
                         
-                        polygon = QPolygonF(points)
-                       
-                        if (polygon.containsPoint(self._tableLabel._mousePressPos, Qt.WindingFill)):
+                        if (point_in_polygon(self._tableLabel._mousePressPos, polygon)):
                             enabledCards = []
                         
                             enabledCards = self._game._players[i].enabledCards(self._game._centerCards,
                                                                                self._game._firstRound,
                                                                                self._game._calledKing,
-                                                                               self._dogLabel.isVisible())
+                                                                               self._dogLabel.opacity == 1)
 
                             if (enabledCards[j]):
-                                if (self._cardComboBox.isVisible()):
+                                if (self._cardComboBox.opacity == 1):
                                     self._cardComboBox.setCurrentText(self._game._players[i]._cards[j].name())
-                                elif (self._dogLabel.isVisible()):
+                                elif (self._dogLabel.opacity == 1):
                                     self._tableLabel._mousePressPos = None
                                     self._dogComboBoxes[self._dogIndex].setCurrentText(self._game._players[i]._cards[j].name())
                                     self._dogIndex += 1
-                                    if (not self._dogComboBoxes[self._dogIndex].isVisible()):
+                                    if (not self._dogComboBoxes[self._dogIndex].opacity == 1):
                                         self._dogIndex = 0
                             
                             break
@@ -262,30 +353,33 @@ class Window(kivy.uix.gridlayout.GridLayout):
         if (not self._thread.is_alive()):
             if (self._game.attackPoints() == 0
                 and self._game.defencePoints() == 0):
-                QMessageBox.information(self._window,
-                                        "Game over",
-                                        "Nobody takes!")
-                
-                self._window.close()
+                content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                content.add_widget(kivy.uix.label.Label(text = "Nobody takes!"))
+                popup = kivy.uix.popup.Popup(title = "Game over", content = content)
+                popup.open()
             else:
                 if (self._game.attackWins()):
-                     QMessageBox.information(self._window,
-                                             "Game over",
-                                             "Attack wins ({0} points for {1} points)!"
-                                             .format(self._game.attackPoints(),
-                                                     self._game.attackTargetPoints()))
+                    content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    content.add_widget(kivy.uix.label.Label(text = "Attack wins ({0} points for {1} points)!"
+                                                                   .format(self._game.attackPoints(),
+                                                                           self._game.attackTargetPoints())))
+                    popup = kivy.uix.popup.Popup(title = "Game over",
+                                                 content = content)
+                    popup.open()
                 else:
-                     QMessageBox.information(self._window,
-                                             "Game over",
-                                             "Attack loses ({0} points for {1} points)!"
-                                             .format(self._game.attackPoints(),
-                                                     self._game.attackTargetPoints()))
-                
-                self._window.close()
+                    content = kivy.uix.boxlayout.BoxLayout(orientation = 'vertical')
+                    content.add_widget(kivy.uix.label.Label(text = "Attack loses ({0} points for {1} points)!"
+                                                                   .format(self._game.attackPoints(),
+                                                                           self._game.attackTargetPoints())))
+                    popup = kivy.uix.popup.Popup(title = "Game over",
+                                                 content = content)
+                    popup.open()
+
+            self._app.stop()
 
 class App(kivy.app.App):
     def build(self):
-        return Window()
+        return Window(self)
 
 class Asset:
     def __init__(self, value: int):
@@ -710,7 +804,7 @@ class Player:
             while (not window._ok):
                 time.sleep(0.01)
             
-            contract = {v: k for k, v in strContracts.items()}.get(choices[window._contractComboBox.currentIndex()])
+            contract = {v: k for k, v in strContracts.items()}.get(window._contractComboBox.text)
             
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._contractLabel, 0), 0)
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._contractComboBox, 0), 0)
@@ -742,7 +836,7 @@ class Player:
             while (not window._ok):
                 time.sleep(0.01)
             
-            calledKing = {v: k for k, v in strFamilies.items()}.get(choices[window._kingComboBox.currentIndex()])
+            calledKing = {v: k for k, v in strFamilies.items()}.get(window._kingComboBox.text)
             
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._kingLabel, 0), 0)
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._kingComboBox, 0), 0)
@@ -759,7 +853,7 @@ class Player:
         self._cards += dog
         self._cards = sortCards(self._cards)
         
-        window.displayTable([], False, True)
+        kivy.clock.Clock.schedule_once(lambda dt: window.displayTable([], False, True), 0)
 
         if (self._isHuman):
             comboBoxes = []
@@ -791,7 +885,7 @@ class Player:
                 selectedCards = []
                 
                 for i in range(0, len(dog)):
-                    selectedCards.append(choices[window._dogComboBoxes[i].currentIndex()])
+                    selectedCards.append(window._dogComboBoxes[i].text)
                 
                 loop = len(set(selectedCards)) != len(dog)
             
@@ -929,7 +1023,7 @@ class Player:
                 strCards[i] = self._cards[i].name()
                 choices.append(self._cards[i].name())
 
-        window.displayTable(cardList, True)
+        kivy.clock.Clock.schedule_once(lambda dt: window.displayTable(cardList, True), 0)
 
         if (self._isHuman):
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._cardLabel, 1), 0)
@@ -943,7 +1037,7 @@ class Player:
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._cardLabel, 0), 0)
             kivy.clock.Clock.schedule_once(lambda dt: window.setOpacity(window._cardComboBox, 0), 0)
             
-            selectedCard = {v: k for k, v in strCards.items()}.get(choices[window._cardComboBox.currentIndex()])
+            selectedCard = {v: k for k, v in strCards.items()}.get(window._cardComboBox.text)
 
             card = self._cards[selectedCard]
             del self._cards[selectedCard]
@@ -980,7 +1074,7 @@ class Game:
         for i in range(0, self._playerNumber):
             p = (self._firstPlayer + i) % self._playerNumber
             self._currentPlayer = p
-            window.displayTable(self._dog, False, True)
+            kivy.clock.Clock.schedule_once(lambda dt: window.displayTable(self._dog, False, True), 0)
             contract = self._players[p].chooseContract(window, self._contract)
             if (contract):
                 self._taker = p
@@ -993,7 +1087,7 @@ class Game:
         self._players[self._taker]._teamKnown = True
 
         self._currentPlayer = self._taker
-        window.displayTable(self._dog, False, True)
+        kivy.clock.Clock.schedule_once(lambda dt: window.displayTable(self._dog, False, True), 0)
 
         if (self._playerNumber == 5):
             self._calledKing = self._players[self._taker].callKing(window)
@@ -1005,7 +1099,7 @@ class Game:
 
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
-            window.displayTable(self._dog, True, True)
+            kivy.clock.Clock.schedule_once(lambda dt: window.displayTable(self._dog, True, True), 0)
             time.sleep(1)
 
             kingInDog = False
@@ -1084,12 +1178,12 @@ class Game:
                         self._players[p]._attackTeam = False
                         self._players[p]._teamKnown = True
 
-                window.displayTable([v for k, v in cards.items()], True)
+                kivy.clock.Clock.schedule_once(lambda dt: window.displayTable([v for k, v in cards.items()], True), 0)
                 time.sleep(1)
             
             self._firstPlayer = self.playSet(cards, i == n - 1)
 
-        window.displayTable(self._dog, True)
+        kivy.clock.Clock.schedule_once(lambda dt: window.displayTable(self._dog, True), 0)
         time.sleep(1)
 
         if (self._contract == Contract.GuardWithout):
@@ -1102,7 +1196,7 @@ class Game:
 
         self._dog = []
         
-        window.displayTable([])
+        kivy.clock.Clock.schedule_once(lambda dt: window.displayTable([]), 0)
         
         self._currentPlayer = None
 
