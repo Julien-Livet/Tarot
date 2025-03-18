@@ -8,7 +8,6 @@ from PyQt5.QtGui import QKeySequence, QPixmap, QPolygonF, QTransform
 from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QMessageBox, QVBoxLayout, QLabel, QPushButton, QShortcut, QWidget
 import random
 import sys
-import time
 import threading
 
 overCardRatio = 1 / 3
@@ -436,13 +435,13 @@ class FamilyCard:
 
         if (self.value() == 1):
             if (self._family == Family.Heart):
-                s = QCoreApplication.translate("name", "Ace of hearts").format(self.value())
+                s = QCoreApplication.translate("name", "Ace of hearts")
             elif (self._family == Family.Diamond):
-                s = QCoreApplication.translate("name", "Ace of diamonds").format(self.value())
+                s = QCoreApplication.translate("name", "Ace of diamonds")
             elif (self._family == Family.Club):
-                s = QCoreApplication.translate("name", "Ace of clubs").format(self.value())
+                s = QCoreApplication.translate("name", "Ace of clubs")
             elif (self._family == Family.Spade):
-                s = QCoreApplication.translate("name", "Ace of spade").format(self.value())
+                s = QCoreApplication.translate("name", "Ace of spade")
         elif (self.value() <= 10):
             if (self._family == Family.Heart):
                 s = QCoreApplication.translate("name", "Heart {0}").format(self.value())
@@ -998,7 +997,7 @@ class Game:
         self._centerCards = []
         assert(3 <= self._playerNumber and self._playerNumber <= 5)
     
-    def play(self, gui):
+    def play(self, gui; GUI):
         self._firstPlayer = random.randrange(self._playerNumber)
         
         for i in range(0, self._playerNumber):
@@ -1376,14 +1375,16 @@ class Game:
             textImage = Image.new('RGBA', (w, h))
             draw = ImageDraw.Draw(textImage)
             draw.text((0, 0), text, font = font, fill = "black")
+            textImage = textImage.resize((int(textImage.width * globalRatio),
+                                          int(textImage.height * globalRatio)))
             textImage = textImage.rotate(angles[i], expand = True)
             
             x = positions[i][0]
             y = positions[i][1]
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (int(x - 80 * math.sin(math.radians(angles[i])) - textImage.width / 2),
-                                    int(y - 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
+            image.paste(textImage, (int(x - globalRatio * 80 * math.sin(math.radians(angles[i])) - textImage.width / 2),
+                                    int(y - globalRatio * 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
