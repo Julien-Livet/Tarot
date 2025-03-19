@@ -14,7 +14,6 @@ overCardRatio = 1 / 3
 globalRatio = 0.8
 
 assert(0 < overCardRatio and overCardRatio <= 1)
-assert(0 < globalRatio and globalRatio <= 1)
 
 cardSize = (int(56 * globalRatio), int(109 * globalRatio))
 
@@ -1420,7 +1419,7 @@ app = QApplication(sys.argv)
 translator = QTranslator()
 translator.load("Tarot_" + QLocale.system().name() + ".qm")
 app.installTranslator(translator)
-    
+
 gui = GUI()
 
 if (not gui.play()):
