@@ -105,11 +105,11 @@ class GUI(QObject):
         global globalRatio
 
         if (self._playerNumber == 3):
-            globalRatio = 0.9
+            globalRatio = 0.85
         elif (self._playerNumber == 4):
-            globalRatio = 1
-        elif (self._playerNumber == 5):
             globalRatio = 0.9
+        elif (self._playerNumber == 5):
+            globalRatio = 0.8
             
         global cardSize
             
@@ -1616,7 +1616,7 @@ class Game:
     def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False):
         assert(len(showPlayers) == self._playerNumber)
         
-        tableImage = Image.new('RGBA', (int(1024 * 0.86), int(768 * 0.86)), color=(139, 69, 19))
+        tableImage = Image.new('RGBA', (int(1025 * 0.86), int(700 * 0.86)), color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
         
