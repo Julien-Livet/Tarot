@@ -13,19 +13,19 @@ import threading
 overCardRatio = 1 / 3
 globalRatio = 0.8
 
-assert(0 < overCardRatio and overCardRatio <= 1)
+cardSize = (0, 0)
 
-cardSize = (int(56 * globalRatio), int(109 * globalRatio))
+assert(0 < overCardRatio and overCardRatio <= 1)
 
 def playerRadius(playerNumber: int) -> float:
     assert(3 <= playerNumber and playerNumber <= 5)
     
-    if (playerNumber == 4):
-        return 275 * globalRatio
-    elif (playerNumber == 3):
+    if (playerNumber == 3):
         return 225 * globalRatio
+    elif (playerNumber == 4):
+        return 260 * globalRatio
     elif (playerNumber == 5):
-        return 300 * globalRatio
+        return 290 * globalRatio
 
 class TableLabel(QLabel):
     def __init__(self, parent):
@@ -101,6 +101,19 @@ class GUI(QObject):
 
         if (self._dialog.result() == QDialog.Rejected):
             return True
+
+        global globalRatio
+
+        if (self._playerNumber == 3):
+            globalRatio = 0.9
+        elif (self._playerNumber == 4):
+            globalRatio = 1
+        elif (self._playerNumber == 5):
+            globalRatio = 0.9
+            
+        global cardSize
+            
+        cardSize = (int(56 * globalRatio), int(109 * globalRatio))
 
         self._game = Game(self._playerNumber)
         self._game.giveHands()
@@ -654,9 +667,9 @@ def sortCards(cards: list) -> list:
             assets.append(card)
         else: #elif card.isFamilyCard():
             families[card.familyCard().family()].append(card)
-    assets = sorted(assets, key=lambda x: x.value(), reverse=True)
+    assets = sorted(assets, key = lambda x: x.value(), reverse = True)
     for k, v in families.items():
-        families[k] = sorted(families[k], key=lambda x: x.value(), reverse=True)
+        families[k] = sorted(families[k], key = lambda x: x.value(), reverse = True)
     cards = assets
     if (len(families[Family.Club]) == 0):
         families[Family.Club], families[Family.Spade] = families[Family.Spade], families[Family.Club]
@@ -669,12 +682,18 @@ def sortCards(cards: list) -> list:
     return cards
 
 class Player:
-    def __init__(self):
+    def __init__(self, game, id: int):
+        self._game = game
+        self._id = id
         self._folds = []
         self._cards = []
         self._attackTeam = False
         self._teamKnown = False
         self._isHuman = False
+        self._cuts = {Family.Heart: False,
+                      Family.Diamond: False,
+                      Family.Club: False,
+                      Family.Spade: False}
         
     def isHuman(self):
         return self._isHuman
@@ -861,7 +880,7 @@ class Player:
             if (card.isAsset()):
                 cardAssets.append(card)
   
-        cardAssets = sorted(cardAssets, key=lambda x: x.value())
+        cardAssets = sorted(cardAssets, key = lambda x: x.value())
         
         handAssets = []
         handFamilies = {Family.Heart: [],
@@ -875,7 +894,7 @@ class Player:
             else:
                 handFamilies[self._cards[i].familyCard().family()].append(self._cards[i])
  
-        handAssets = sorted(handAssets, key=lambda x: x.value())
+        handAssets = sorted(handAssets, key = lambda x: x.value())
         
         for i in range(0, len(self._cards)):
             add = True
@@ -924,16 +943,20 @@ class Player:
                                     if (handAssets[-1].value() > cardAssets[-1].value()
                                         and self._cards[i].asset().value() < cardAssets[-1].value()):
                                         add = False
+                                        
+                            if (add):
+                                self._cuts[firstCard.familyCard().family()] = True
                         else:
                             if (self._cards[i].familyCard().family() != firstCard.familyCard().family()
                                 and len(handAssets)):
                                 add = False
+                                self._cuts[self._cards[i].familyCard().family()] = True
             
             enabledCards.append(add)
 
         return enabledCards
 
-    def playCard(self, cards: dict, firstRound: bool, calledKing: Family) -> Card:
+    def playCard(self, players: list, cards: dict, firstRound: bool, calledKing: Family) -> Card:
         QtTest.QTest.qWait(1000)
 
         card = None
@@ -970,7 +993,224 @@ class Player:
             card = self._cards[selectedCard]
             del self._cards[selectedCard]
         else:
-            selectedCard = random.randrange(len(choices))
+            assets = []
+            families = {Family.Heart: [],
+                        Family.Club: [],
+                        Family.Diamond: [],
+                        Family.Spade: []}
+            for card in cardList:
+                if card.isAsset():
+                    assets.append(card)
+                else: #elif card.isFamilyCard():
+                    families[card.familyCard().family()].append(card)
+            assets = sorted(assets, key = lambda x: x.value())
+            for k, v in families.items():
+                families[k] = sorted(families[k], key = lambda x: x.value())
+
+            p, c = self._game.setWinner(cards)
+        
+            playedAssets, playedFamilies = self._game.playedCards()
+
+            order = players.index(self._id)
+
+            selectedCard = len(choices) - 1#selectedCard = random.randrange(len(choices))
+
+            if (p == None):
+                if (self._attackTeam):
+                    if (self._game._taker == self._id):
+                        if (len(assets)):
+                            assetIndex = -1
+                            
+                            if (assets[assetIndex].value() == 0):
+                                assetIndex -= 1
+                            if (assets[assetIndex].value() == 1):
+                                assetIndex -= 1
+                            
+                            if (abs(assetIndex + 1) > len(assets)):
+                                assetIndex += 1
+                                
+                                if (assets[assetIndex].value() == 1
+                                    and assetIndex == -2):
+                                    assetIndex = -1
+                            
+                            selectedCard = choices.index(assets[assetIndex].name())
+                        else:
+                            for k, v in families.items():
+                                bestCard = 15
+                                
+                                if (len(playedFamilies[k])):
+                                    bestCard = len(playedFamilies[k]).value()
+                                    
+                                if (len(families) and families[k][-1] >= bestCard - 1):
+                                    cut = False
+                                    
+                                    for i in range(0, self._game._playerNumber):
+                                        if (self._game._players[i]._cuts[families[k]]):
+                                            cut = True
+                                            break
+                                    
+                                    if (not cut):
+                                        selectedCard = choices.index(families[k][-1].name())
+                    else:
+                        takerOrder = players.index(self._game._taker)
+                        
+                        if (order < takerOrder):
+                            if (len(assets)):
+                                selectedCard = choices.index(assets[0].name())
+                            else:
+                                familyIsPlayed = {Family.Heart: False,
+                                                  Family.Club: False,
+                                                  Family.Diamond: False,
+                                                  Family.Spade: False}
+                                playedFamily = False
+                                    
+                                for k, v in playedFamilies.items():
+                                    if (len(v)):
+                                        familyIsPlayed[k] = True
+                                        playedFamily = True
+                                
+                                familyIsPlayed = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1], reverse = True))
+                            
+                                if (playedFamily):
+                                    i = 0
+                                    
+                                    while (i < 4):
+                                        try:
+                                            selectedCard = choices.index(families[familyIsPlayed[i]][0].name())
+                                            i = 4
+                                        except:
+                                            pass
+                                            
+                                        i += 1
+                                else:
+                                    ok = False
+                                    
+                                    while (not ok):
+                                        try:
+                                            selectedCard = choices.index(families[Family(random.randrange(4))][0].name())
+                                            ok = True
+                                        except:
+                                            pass
+                        else:
+                            familyIsPlayed = {Family.Heart: False,
+                                              Family.Club: False,
+                                              Family.Diamond: False,
+                                              Family.Spade: False}
+                                
+                            for k, v in playedFamilies.items():
+                                if (len(v)):
+                                    familyIsPlayed[k] = True
+                            
+                            familyIsPlayed = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1], reverse = True))
+                            
+                            try:
+                                selectedCard = choices.index(families[playedFamilies[0]][0].name())
+                            except:
+                                pass
+                else:
+                    takerOrder = players.index(self._game._taker)
+                        
+                    if (order < takerOrder):
+                        familyIsPlayed = {Family.Heart: False,
+                                          Family.Club: False,
+                                          Family.Diamond: False,
+                                          Family.Spade: False}
+                            
+                        for k, v in playedFamilies.items():
+                            if (len(v)):
+                                familyIsPlayed[k] = True
+                        
+                        playedFamilies = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1]))
+                        
+                        i = 0
+                                    
+                        while (i < 4):
+                            try:
+                                selectedCard = choices.index(families[familyIsPlayed[i]][0].name())
+                                i = 4
+                            except:
+                                pass
+                                
+                            i += 1
+                    else:
+                        if (len(assets)):
+                            selectedCard = choices.index(assets[0].name())
+                        else:
+                            playedFamily = None
+                            
+                            for k, v in playedFamilies.items():
+                                if (len(v)):
+                                    playedFamily = k
+                                    break
+                            
+                            if (playedFamily):
+                                selectedCard = choices.index(families[playedFamily][0].name())
+                            else:
+                                selectedCard = choices.index(families[Family(random.randrange(4))][0].name())
+            else:
+                if (self._game._players[p].teamKnown()):
+                    if (c.isFamilyCard()):
+                        bestCard = 15
+                
+                        if (len(playedFamilies[c.familyCard().family()])):
+                            bestCard = playedFamilies[c.familyCard().family()][-1].value()
+                    
+                        if (self._game._players[p].attackTeam()):
+                            if (self._attackTeam):
+                                if (choices[0].startswith("asset-")):
+                                    selectedCard = -1
+                                else:    
+                                    selectedCard = 0
+                            else:
+                                if (families[c.familyCard().family()][-1].value() >= bestCard - 1):
+                                    selectedCard = 0
+                                else:
+                                    selectedCard = -1
+                        else:
+                            if (not self._attackTeam):
+                                if (choices[0].startswith("asset-")):
+                                    selectedCard = -1
+                                else:    
+                                    selectedCard = 0
+                            else:
+                                selectedCard = -1
+                    else: #elif (c.isAsset()):
+                        bestAsset = 22
+                        
+                        if (len(playedAssets)):
+                            bestAsset = playedAssets[-1].value()
+                    
+                        assetOneIndex = -1
+                        
+                        for i in range(0, len(self._cards)):
+                            if (self._cards[i].isAsset() and self._cards[i].value() == 1):
+                                assetOneInCards = i
+                                break
+                    
+                        if (self._game._players[p].attackTeam()):
+                            if (self._attackTeam):
+                                if (assets[-1].value() >= bestAsset - 1
+                                    and assetOneIndex != -1):
+                                    selectedCard = choices.index(self._cards[assetOneIndex].name())
+                        else:
+                            if (not self._attackTeam):
+                                if (assets[-1].value() >= bestAsset - 1
+                                    and assetOneIndex != -1):
+                                    selectedCard = choices.index(self._cards[assetOneIndex].name())
+                else:
+                    if (c.isFamilyCard()):
+                        selectedCard = 0
+                    else: #elif (c.isAsset()):
+                        index = -1
+                        
+                        if (choices[index].name() == "asset-1"):
+                            index -= 1
+                        
+                        try:
+                            selectedCard = choices[index]
+                        except:
+                            pass
+                
             selectedCard = {v: k for k, v in strCards.items()}.get(choices[selectedCard])
             
             card = self._cards[selectedCard]
@@ -1066,19 +1306,19 @@ class Game:
         for i in range(0, n):
             cards = {}
 
+            players = [(self._firstPlayer + j) % self._playerNumber for j in range(0, self._playerNumber)]
+
             for j in range(0, self._playerNumber):
                 self._centerCards = []
                 p = (self._firstPlayer + j) % self._playerNumber
                 self._currentPlayer = p
                 self._firstRound = (i == 0)
-                cards[p] = self._players[p].playCard(cards, self._firstRound, self._calledKing)
+                cards[p] = self._players[p].playCard(players, cards, self._firstRound, self._calledKing)
                 self._centerCards = [x[1] for x in cards.items()]
                 
                 if (cards[p].isFamilyCard()
                     and cards[p].familyCard().family() == self._calledKing
                     and cards[p].familyCard().value() == 14):
-                    self._players[p]._attackTeam = True
-                    
                     for player in self._players:
                         player._teamKnown = True
                     
@@ -1188,7 +1428,7 @@ class Game:
         else:
             folds = self.defenceFolds()
         
-        folds = sorted(folds, key=lambda x: x.points())
+        folds = sorted(folds, key = lambda x: x.points())
             
         givenCard = None
             
@@ -1223,7 +1463,7 @@ class Game:
         random.shuffle(self._cards)
         assert(len(self._cards) == 78)
         
-        self._players = [Player() for x in range(0, self._playerNumber)]
+        self._players = [Player(self, i) for i in range(0, self._playerNumber)]
         
         n = 78 // 3 // self._playerNumber
         
@@ -1237,6 +1477,43 @@ class Game:
         
         self._dog = sortCards(self._cards)
         self._cards = []
+        
+    def setWinner(self, cards: dict):
+        if (len(cards) == 0):
+            return (None, None)
+            
+        assets = {}
+        families = {Family.Heart: {},
+                    Family.Diamond: {},
+                    Family.Club: {},
+                    Family.Spade: {}}
+        for k, v in cards.items():
+            if v.isAsset():
+                assets[k] = v
+            else: #elif v.isFamilyCard():
+                families[v.familyCard().family()][k] = v
+        
+        if (len(assets)):
+            assets = dict(sorted(assets.items(), key = lambda item: item[1].value()))
+            
+            p, a = list(assets.items())[-1]
+            
+            if (a.value() > 0):
+                return (p, a)
+                
+        p, firstCard = list(cards.items())[0]
+        
+        if (firstCard.isAsset() and firstCard.asset().isFool()):
+            if (len(cards) > 1):
+                p, firstCard = list(cards.items())[1]
+            else:
+                return (p, firstCard)
+                
+        f = dict(sorted(families[firstCard.familyCard().family()].items(), key = lambda item: item[1].value()))
+        
+        p, c = list(f.items())[-1]
+        
+        return (p, c)
     
     def playSet(self, cards: dict, lastSet: bool):
         assets = {}
@@ -1250,9 +1527,9 @@ class Game:
             else: #elif v.isFamilyCard():
                 families[v.familyCard().family()][k] = v.familyCard()
 
-        assets = dict(sorted(assets.items(), key=lambda x: x[1].value()))
+        assets = dict(sorted(assets.items(), key = lambda x: x[1].value()))
         for i in range(0, 4):
-            families[Family(i)] = dict(sorted(families[Family(i)].items(), key=lambda x: x[1].value()))
+            families[Family(i)] = dict(sorted(families[Family(i)].items(), key = lambda x: x[1].value()))
 
         foolIndex = -1
         
@@ -1339,7 +1616,7 @@ class Game:
     def tableImage(self, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False):
         assert(len(showPlayers) == self._playerNumber)
         
-        tableImage = Image.new('RGBA', (int(1024 * globalRatio), int(768 * globalRatio)), color=(139, 69, 19))
+        tableImage = Image.new('RGBA', (int(1024 * 0.86), int(768 * 0.86)), color=(139, 69, 19))
         
         centerCardsImage = imageForCards(centerCards, [True for c in centerCards], shown = showCenterCards)
         
@@ -1414,6 +1691,28 @@ class Game:
                 tableImage = Image.alpha_composite(tableImage, image)
 
         return tableImage
+
+    def playedCards(self):
+        assets = []
+        families = {Family.Heart: [],
+                    Family.Diamond: [],
+                    Family.Club: [],
+                    Family.Spade: []}
+
+        folds = self.attackFolds() + self.defenceFolds()
+                    
+        for c in folds:
+            if c.isAsset():
+                assets.append(c)
+            else: #elif c.isFamilyCard():
+                families[c.familyCard().family()].append(c)
+        
+        assets = sorted(assets, key = lambda x: x.value())
+        
+        for k, v in families.items():
+            families[k] = sorted(families[k], key = lambda x: x.value())
+        
+        return (assets, families)
 
 app = QApplication(sys.argv)
 translator = QTranslator()
