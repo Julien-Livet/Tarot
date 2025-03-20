@@ -943,7 +943,7 @@ class Player:
                                     if (handAssets[-1].value() > cardAssets[-1].value()
                                         and self._cards[i].asset().value() < cardAssets[-1].value()):
                                         add = False
-                                        
+
                             if (add):
                                 self._cuts[firstCard.familyCard().family()] = True
                         else:
@@ -1203,14 +1203,14 @@ class Player:
                     else: #elif (c.isAsset()):
                         index = -1
                         
-                        if (choices[index].name() == "asset-1"):
+                        if (choices[index] == "asset-1"):
                             index -= 1
                         
                         try:
                             selectedCard = choices[index]
                         except:
                             pass
-                
+
             selectedCard = {v: k for k, v in strCards.items()}.get(choices[selectedCard])
             
             card = self._cards[selectedCard]
@@ -1477,7 +1477,7 @@ class Game:
         
         self._dog = sortCards(self._cards)
         self._cards = []
-        
+
     def setWinner(self, cards: dict):
         if (len(cards) == 0):
             return (None, None)
