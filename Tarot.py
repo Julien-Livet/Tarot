@@ -724,10 +724,10 @@ class Player:
         possibleContracts = []
         
         if (contract):
-            possibleContracts = [i for i in range(int(contract) + 1, 4)]
-        else:
             possibleContracts = [-1]
-            possibleContracts += [i for i in range(-1, 4)]
+            possibleContracts += [i for i in range(int(contract) + 1, 4)]
+        else:
+            possibleContracts = [i for i in range(-1, 4)]
             
         if (len(possibleContracts) == 0):
             return None
