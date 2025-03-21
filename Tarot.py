@@ -1126,22 +1126,27 @@ class Player:
                             
                             selectedCard = choices.index(assets[assetIndex].name())
                         else:
-                            for k, v in families.items():
-                                bestCard = 15
-                                
-                                if (len(playedFamilies[k])):
-                                    bestCard = playedFamilies[k][-1].value()
+                            if (self._game._calledKing
+                                and not playedFamilies[self._game._calledKing]
+                                and len(handFamilies[self._game._calledKing])):
+                                selectedCard = choices.index(handFamilies[self._game._calledKing][-1].name())
+                            else:
+                                for k, v in families.items():
+                                    bestCard = 15
                                     
-                                if (len(families[k]) and families[k][-1] >= bestCard - 1):
-                                    cut = False
-                                    
-                                    for i in range(0, self._game._playerNumber):
-                                        if (self._game._players[i]._cuts[families[k]]):
-                                            cut = True
-                                            break
-                                    
-                                    if (not cut):
-                                        selectedCard = choices.index(handFamilies[k][-1].name())
+                                    if (len(playedFamilies[k])):
+                                        bestCard = playedFamilies[k][-1].value()
+                                        
+                                    if (len(families[k]) and families[k][-1] >= bestCard - 1):
+                                        cut = False
+                                        
+                                        for i in range(0, self._game._playerNumber):
+                                            if (self._game._players[i]._cuts[families[k]]):
+                                                cut = True
+                                                break
+                                        
+                                        if (not cut):
+                                            selectedCard = choices.index(handFamilies[k][-1].name())
                     else:
                         takerOrder = players.index(self._game._taker)
                         
