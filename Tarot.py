@@ -1106,6 +1106,14 @@ class Player:
 
             selectedCard = len(choices) - 1#selectedCard = random.randrange(len(choices))
 
+            points = 10
+            
+            for card in self._cards:
+                if (card.name() in choices):
+                    if (card.points() < points):
+                        selectedCard = choices.index(card.name())
+                        points = card.points()
+
             if (p == None):
                 if (self._attackTeam):
                     if (self._game._taker == self._id):
