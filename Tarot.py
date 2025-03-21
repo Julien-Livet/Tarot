@@ -1116,7 +1116,7 @@ class Player:
                                 bestCard = 15
                                 
                                 if (len(playedFamilies[k])):
-                                    bestCard = len(playedFamilies[k]).value()
+                                    bestCard = len(playedFamilies[k][-1]).value()
                                     
                                 if (len(families[k]) and families[k][-1] >= bestCard - 1):
                                     cut = False
