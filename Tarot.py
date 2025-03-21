@@ -1269,11 +1269,17 @@ class Player:
                                 if (assets[-1].value() >= bestAsset - 1
                                     and assetOneIndex != -1):
                                     selectedCard = choices.index(self._cards[assetOneIndex].name())
+                            else:
+                                if (choices[selectedCard] == "asset-1" and selectedCard - 1 >= 0):
+                                    selectedCard -= 1
                         else:
                             if (not self._attackTeam):
                                 if (assets[-1].value() >= bestAsset - 1
                                     and assetOneIndex != -1):
                                     selectedCard = choices.index(self._cards[assetOneIndex].name())
+                            else:
+                                if (choices[selectedCard] == "asset-1" and selectedCard - 1 >= 0):
+                                    selectedCard -= 1
                 else:
                     if (c.isFamilyCard()):
                         selectedCard = 0
@@ -1345,7 +1351,7 @@ class Game:
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
             gui.displayTable(self._dog, True, True)
-            QtTest.QTest.qWait(1000)
+            QtTest.QTest.qWait(2000)
 
             kingInDog = False
 
