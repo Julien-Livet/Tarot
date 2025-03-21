@@ -1133,7 +1133,12 @@ class Player:
                         
                         if (order < takerOrder):
                             if (len(assets)):
-                                selectedCard = choices.index(assets[0].name())
+                                index = 0
+                                
+                                if (assets[index].name() == "asset-1"):
+                                    index -= 1
+                                
+                                selectedCard = choices.index(assets[index])
                             else:
                                 familyIsPlayed = {Family.Heart: False,
                                                   Family.Club: False,
@@ -1199,16 +1204,24 @@ class Player:
                         
                         playedFamilies = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1]))
                         
-                        i = 0
-                                    
-                        while (i < 4):
-                            try:
-                                selectedCard = choices.index(families[familyIsPlayed[i]][0].name())
-                                i = 4
-                            except:
-                                pass
+                        if (list(playedFamilies.values()).count(True) == 4):
+                            index = 0
                                 
-                            i += 1
+                            if (assets[index].name() == "asset-1"):
+                                index -= 1
+                            
+                            selectedCard = choices.index(assets[index])
+                        else:
+                            i = 0
+                                        
+                            while (i < 4):
+                                try:
+                                    selectedCard = choices.index(families[familyIsPlayed[i]][0].name())
+                                    i = 4
+                                except:
+                                    pass
+                                    
+                                i += 1
                     else:
                         if (len(assets)):
                             selectedCard = choices.index(assets[0].name())
