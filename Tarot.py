@@ -288,7 +288,7 @@ class GUI(QObject):
                                     self._tableLabel._mousePressPos = None
                                     self._dogComboBoxes[self._dogIndex].setCurrentText(self._game._players[i]._cards[j].name())
                                     self._dogIndex += 1
-                                    if (not self._dogComboBoxes[self._dogIndex].isVisible()):
+                                    if (self._dogIndex >= 6 or not self._dogComboBoxes[self._dogIndex].isVisible()):
                                         self._dogIndex = 0
                             
                             break
