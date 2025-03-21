@@ -1242,10 +1242,10 @@ class Player:
                         if (list(emptyFamilies.values()).count(True) == 4):
                             index = 0
                                 
-                            if (assets[index].name() == "asset-1"):
+                            if (handAssets[index].name() == "asset-1"):
                                 index -= 1
                             
-                            selectedCard = choices.index(assets[index])
+                            selectedCard = choices.index(handAssets[index])
                         else:
                             i = 0
                                         
@@ -1340,6 +1340,7 @@ class Player:
                         
                         try:
                             selectedCard = choices[index]
+                            selectedCard = index
                         except:
                             pass
 
