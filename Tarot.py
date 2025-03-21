@@ -929,9 +929,20 @@ class Player:
                 newDog.append(self._cards[j])
                 del self._cards[j]
         else:
-            #TODO: ...
+            cards = []
             
-            newDog = dog
+            for card in self._cards:
+                if (not card.isAsset() and card.value() != 14):
+                    cards.append(card)
+            
+            cards = sorted(cards, key = lambda x: x.value())
+            
+            newDog = cards[0:len(dog)]
+            
+            for i in range(0, len(self._cards)):
+                if (self._cards[i] in newDog):
+                    del self._cards[i]
+                    i -= 1
         
         assert(len(newDog) == len(dog))
         
