@@ -1084,6 +1084,20 @@ class Player:
             for k, v in families.items():
                 families[k] = sorted(families[k], key = lambda x: x.value())
 
+            handAssets = []
+            handFamilies = {Family.Heart: [],
+                            Family.Club: [],
+                            Family.Diamond: [],
+                            Family.Spade: []}
+            for card in self._cards:
+                if card.isAsset():
+                    handAssets.append(card)
+                else: #elif card.isFamilyCard():
+                    handFamilies[card.familyCard().family()].append(card)
+            handAssets = sorted(handAssets, key = lambda x: x.value())
+            for k, v in handFamilies.items():
+                handFamilies[k] = sorted(handFamilies[k], key = lambda x: x.value())
+
             p, c = self._game.setWinner(cards)
         
             playedAssets, playedFamilies = self._game.playedCards()
@@ -1127,7 +1141,7 @@ class Player:
                                             break
                                     
                                     if (not cut):
-                                        selectedCard = choices.index(families[k][-1].name())
+                                        selectedCard = choices.index(handFamilies[k][-1].name())
                     else:
                         takerOrder = players.index(self._game._taker)
                         
@@ -1158,7 +1172,7 @@ class Player:
                                     
                                     while (i < 4):
                                         try:
-                                            selectedCard = choices.index(families[familyIsPlayed[i]][0].name())
+                                            selectedCard = choices.index(handFamilies[familyIsPlayed[i]][0].name())
                                             i = 4
                                         except:
                                             pass
@@ -1169,7 +1183,7 @@ class Player:
                                     
                                     while (not ok):
                                         try:
-                                            selectedCard = choices.index(families[Family(random.randrange(4))][0].name())
+                                            selectedCard = choices.index(handFamilies[Family(random.randrange(4))][0].name())
                                             ok = True
                                         except:
                                             pass
@@ -1186,7 +1200,7 @@ class Player:
                             familyIsPlayed = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1], reverse = True))
                             
                             try:
-                                selectedCard = choices.index(families[playedFamilies[0]][0].name())
+                                selectedCard = choices.index(handFamilies[playedFamilies[0]][0].name())
                             except:
                                 pass
                 else:
@@ -1197,14 +1211,21 @@ class Player:
                                           Family.Club: False,
                                           Family.Diamond: False,
                                           Family.Spade: False}
-                            
+                        emptyFamilies = {Family.Heart: False,
+                                         Family.Club: False,
+                                         Family.Diamond: False,
+                                         Family.Spade: False}
+                                         
                         for k, v in playedFamilies.items():
                             if (len(v)):
                                 familyIsPlayed[k] = True
+                        for k, v in handFamilies.items():
+                            if (not len(v)):
+                                emptyFamilies[k] = True
                         
                         playedFamilies = dict(sorted(familyIsPlayed.items(), key = lambda item: item[1]))
                         
-                        if (list(playedFamilies.values()).count(True) == 4):
+                        if (list(emptyFamilies.values()).count(True) == 4):
                             index = 0
                                 
                             if (assets[index].name() == "asset-1"):
@@ -1216,7 +1237,7 @@ class Player:
                                         
                             while (i < 4):
                                 try:
-                                    selectedCard = choices.index(families[familyIsPlayed[i]][0].name())
+                                    selectedCard = choices.index(handFamilies[familyIsPlayed[i]][0].name())
                                     i = 4
                                 except:
                                     pass
@@ -1234,9 +1255,9 @@ class Player:
                                     break
                             
                             if (playedFamily):
-                                selectedCard = choices.index(families[playedFamily][0].name())
+                                selectedCard = choices.index(handFamilies[playedFamily][0].name())
                             else:
-                                selectedCard = choices.index(families[Family(random.randrange(4))][0].name())
+                                selectedCard = choices.index(handFamilies[Family(random.randrange(4))][0].name())
             else:
                 if (self._game._players[p].teamKnown()):
                     if (c.isFamilyCard()):
@@ -1252,7 +1273,8 @@ class Player:
                                 else:    
                                     selectedCard = 0
                             else:
-                                if (families[c.familyCard().family()][-1].value() >= bestCard - 1):
+                                if (len(families[c.familyCard().family()])
+                                    and families[c.familyCard().family()][-1].value() >= bestCard - 1):
                                     selectedCard = 0
                                 else:
                                     selectedCard = -1
