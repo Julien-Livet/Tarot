@@ -1119,19 +1119,15 @@ class Player:
                 if (self._attackTeam):
                     if (self._game._taker == self._id):
                         if (len(handAssets)):
-                            assetIndex = -1
+                            assetIndex = len(handAssets) - 1
                             
                             if (handAssets[assetIndex].value() == 0):
                                 assetIndex -= 1
                             if (handAssets[assetIndex].value() == 1):
                                 assetIndex -= 1
                             
-                            if (abs(assetIndex + 1) > len(handAssets)):
-                                assetIndex += 1
-                                
-                                if (assets[assetIndex].value() == 1
-                                    and assetIndex == -2):
-                                    assetIndex = -1
+                            if (assetIndex < 0):
+                                assetIndex = -1
                             
                             selectedCard = choices.index(handAssets[assetIndex].name())
                         else:
