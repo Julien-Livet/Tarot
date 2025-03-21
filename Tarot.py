@@ -1525,7 +1525,7 @@ class Game:
                 self._players[attackPlayer]._folds.append(givenCard)
 
     def maximumPoints(self):
-        carfs = []
+        cards = []
     
         for i in range(0, 4):
             for j in range(1, 11):
