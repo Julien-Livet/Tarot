@@ -936,13 +936,11 @@ class Player:
                     cards.append(card)
             
             cards = sorted(cards, key = lambda x: x.value())
-            
+
             newDog = cards[0:len(dog)]
             
-            for i in range(0, len(self._cards)):
-                if (self._cards[i] in newDog):
-                    del self._cards[i]
-                    i -= 1
+            for c in newDog:
+                del self._cards[self._cards.index(c)]
         
         assert(len(newDog) == len(dog))
         
@@ -1105,9 +1103,9 @@ class Player:
                     handAssets.append(card)
                 else: #elif card.isFamilyCard():
                     handFamilies[card.familyCard().family()].append(card)
-            handAssets = sorted(handAssets, key = lambda x: x.value())
+            handAssets = sorted(handAssets, key = lambda x: x.value(), reverse = True)
             for k, v in handFamilies.items():
-                handFamilies[k] = sorted(handFamilies[k], key = lambda x: x.value())
+                handFamilies[k] = sorted(handFamilies[k], key = lambda x: x.value(), reverse = True)
 
             p, c = self._game.setWinner(cards)
         
