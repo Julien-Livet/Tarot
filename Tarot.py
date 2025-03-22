@@ -1719,17 +1719,17 @@ class Game:
                         for i in range(0, self.playerNumber):
                             if (self._players[i].defenceTeam()):
                                 self._players[i]._folds.append(list(assets.items())[foolIndex][1])
-                                del assets[foolIndex]
+                                del assets[list(assets.keys())[foolIndex]]
                                 break
                     else:
                         for i in range(0, self.playerNumber):
                             if (self._players[i].attackTeam()):
                                 self._players[i]._folds.append(list(assets.items())[foolIndex][1])
-                                del assets[foolIndex]
+                                del assets[list(assets.keys())[foolIndex]]
                                 break
                 else:
                     self._players[p]._folds.append(list(assets.items())[foolIndex][1])
-                    del assets[foolIndex]
+                    del assets[list(assets.keys())[foolIndex]]
                     
             if (len(assets)):
                 p = list(assets.items())[-1][0]
