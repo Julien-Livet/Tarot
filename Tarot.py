@@ -307,14 +307,14 @@ class GUI(QObject):
                 if (self._game.attackWins()):
                     QMessageBox.information(self._window,
                                             QCoreApplication.translate("monitor", "Game over"),
-                                            QCoreApplication.translate("monitor", "Well done!") if self._game._players[0].attackTeam() else QCoreApplication.translate("monitor", "Shame!")
+                                            (QCoreApplication.translate("monitor", "Well done!") if self._game._players[0].attackTeam() else QCoreApplication.translate("monitor", "Shame!"))
                                             + QCoreApplication.translate("monitor", " Attack wins ({0} points for {1} points)!")
                                             .format(self._game.attackPoints(),
                                                     self._game.attackTargetPoints()))
                 else:
                     QMessageBox.information(self._window,
                                             QCoreApplication.translate("monitor", "Game over"),
-                                            QCoreApplication.translate("monitor", "Well done!") if self._game._players[0].defenceTeam() else QCoreApplication.translate("monitor", "Shame!")
+                                            (QCoreApplication.translate("monitor", "Well done!") if self._game._players[0].defenceTeam() else QCoreApplication.translate("monitor", "Shame!"))
                                             + CoreApplication.translate("monitor", " Attack loses ({0} points for {1} points)!")
                                             .format(self._game.attackPoints(),
                                                     self._game.attackTargetPoints()))
