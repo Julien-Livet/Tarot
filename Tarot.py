@@ -307,13 +307,15 @@ class GUI(QObject):
                 if (self._game.attackWins()):
                     QMessageBox.information(self._window,
                                             QCoreApplication.translate("monitor", "Game over"),
-                                            QCoreApplication.translate("monitor", "Attack wins ({0} points for {1} points)!")
+                                            QCoreApplication.translate("monitor", "Well done!") if self._game._players[0].attackTeam() else QCoreApplication.translate("monitor", "Shame!")
+                                            + QCoreApplication.translate("monitor", " Attack wins ({0} points for {1} points)!")
                                             .format(self._game.attackPoints(),
                                                     self._game.attackTargetPoints()))
                 else:
                     QMessageBox.information(self._window,
                                             QCoreApplication.translate("monitor", "Game over"),
-                                            QCoreApplication.translate("monitor", "Attack loses ({0} points for {1} points)!")
+                                            QCoreApplication.translate("monitor", "Well done!") if self._game._players[0].defenceTeam() else QCoreApplication.translate("monitor", "Shame!")
+                                            + CoreApplication.translate("monitor", " Attack loses ({0} points for {1} points)!")
                                             .format(self._game.attackPoints(),
                                                     self._game.attackTargetPoints()))
                 
@@ -1118,7 +1120,7 @@ class Player:
             if (p == None):
                 if (self._attackTeam):
                     if (self._game._taker == self._id):
-                        if (len(handAssets)):
+                        if (len(handAssets) and len(handAssets) >= 22 // self._game._playerNumber):
                             assetIndex = len(handAssets) - 1
                             
                             if (handAssets[assetIndex].value() == 0):
