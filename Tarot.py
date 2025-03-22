@@ -1635,6 +1635,16 @@ class Game:
         
         self._dog = sortCards(self._cards)
         self._cards = []
+        
+        for player in self._players:
+            assets = []
+            
+            for card in player._cards:
+                if (card.isAsset()):
+                    assets.append(card)
+                    
+            if (len(assets) == 1 and assets[0].value() == 1):
+                self.giveHands()
 
     def setWinner(self, cards: dict):
         if (len(cards) == 0):
@@ -1709,17 +1719,17 @@ class Game:
                         for i in range(0, self.playerNumber):
                             if (self._players[i].defenceTeam()):
                                 self._players[i]._folds.append(list(assets.items())[foolIndex][1])
-                                del assets[i]
+                                del assets[foolIndex]
                                 break
                     else:
                         for i in range(0, self.playerNumber):
                             if (self._players[i].attackTeam()):
                                 self._players[i]._folds.append(list(assets.items())[foolIndex][1])
-                                del assets[i]
+                                del assets[foolIndex]
                                 break
                 else:
                     self._players[p]._folds.append(list(assets.items())[foolIndex][1])
-                    del assets[p]
+                    del assets[foolIndex]
                     
             if (len(assets)):
                 p = list(assets.items())[-1][0]
