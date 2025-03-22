@@ -1553,7 +1553,7 @@ class Game:
         defencePlayer = -1
         attackPlayer = -1
         
-        for i in range(0, self.playerNumber):
+        for i in range(0, self._playerNumber):
             if (self._players[i].defenceTeam()):
                 defencePlayer = i
             else:
@@ -1716,7 +1716,7 @@ class Game:
                     attackTeam = self._players[p].attackTeam()
                     
                     if (attackTeam):
-                        for i in range(0, self.playerNumber):
+                        for i in range(0, self._playerNumber):
                             if (self._players[i].defenceTeam()):
                                 self._players[i]._folds.append(list(assets.items())[foolIndex][1])
                                 del assets[list(assets.keys())[foolIndex]]
