@@ -1243,7 +1243,7 @@ class Player:
                             if (handAssets[index].name() == "asset-1"):
                                 index -= 1
                             
-                            selectedCard = choices.index(handAssets[index])
+                            selectedCard = choices.index(handAssets[index].name())
                         else:
                             i = 0
                                         
