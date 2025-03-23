@@ -10,6 +10,7 @@ from PyQt5.QtCore import QCoreApplication, QObject, Qt, QRectF, QTimer
 from PyQt5.QtGui import QKeySequence, QIcon, QPixmap, QPolygonF, QTransform
 from PyQt5.QtWidgets import QApplication, QButtonGroup, QComboBox, QDialog, QFileDialog, QHBoxLayout, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QPushButton, QRadioButton, QShortcut
 from server import Server
+import struct
 import threading
 
 iniFilename = os.path.dirname(__file__) + "/../../Tarot.ini"
@@ -201,7 +202,7 @@ class GUI(QObject):
             
             for i in range(1, self._playerNumber):
                 self._localClients.append(Client.Client(self, self._playerNumber, False, host))
-                self._localClients[-1]._socket.send(("room-" + str(self._playerNumber)).encode())
+                self._localClients[-1]._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
         else:
             #TODO: put a valid server address
             host = ""
@@ -216,7 +217,7 @@ class GUI(QObject):
         self._cardSize = (int(56 * self._globalRatio), int(109 * self._globalRatio))
 
         self._client = Client.Client(self, self._playerNumber, True, host)
-        self._client._socket.send(("room-" + str(self._playerNumber)).encode())
+        self._client._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
 
         self._window = Window(self)
         self._window.setWindowTitle(QCoreApplication.translate("play", "Tarot"))

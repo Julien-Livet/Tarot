@@ -34,11 +34,11 @@ class Client:
             self._socket.close()
         
     def receiveData(self):
-        while (not self._closed):
-            data = None
+        data = b""
             
+        while (not self._closed):
             try:
-                data = self._socket.recv(1024)
+                data += self._socket.recv(1024)
             except:
                 pass
 
@@ -55,8 +55,10 @@ class Client:
                             pass
 
                     self._gameData = pickle.loads(data)
+                    
+                    data = data[size:]
                 elif (data.startswith(b"connect-")):
-                    self._id = int(data.split(b"connect-")[1])
+                    self._id = size = struct.unpack('!i', data[len(b"connect-"):len(b"connect-") + 4])[0]
 
                     self._gameData._players[self._id]._name = self._gui._lineEdit.text()
                     self._gameData._players[self._id]._avatar = self._gui._avatar
@@ -66,11 +68,13 @@ class Client:
                     
                     while (send):     
                         try:
-                            data = pickle.dumps(self._gameData)
-                            self._socket.send(b"game-" + struct.pack('!i', len(data)))
-                            self._socket.send(data)
+                            d = pickle.dumps(self._gameData)
+                            self._socket.send(b"game-" + struct.pack('!i', len(d)))
+                            self._socket.send(d)
                             send = False
                         except:
                             pass
+                    
+                    data = data[len(b"connect-") + 4:]
                 elif (data == b"play"):
                     pass

@@ -45,11 +45,11 @@ class Server:
 
         roomId = -1
             
-        while (init):
-            data = None
+        data = b""
             
+        while (init):
             try:
-                data = clientSocket.recv(1024)
+                data += clientSocket.recv(1024)
             except:
                 pass
                 
@@ -57,7 +57,7 @@ class Server:
                 return
 
             if (data and data.startswith(b"room-")):
-                playerNumber = int(data.split(b"room-")[1])
+                playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
             
                 found = False
                     
@@ -80,6 +80,8 @@ class Server:
                 
                 init = False
                 
+                data = data[len(b"room-") + 4:]
+                
         gameData = Game.GameData(3)
         for key, value in vars(room._game).items():
             if (key != "_server"):
@@ -89,14 +91,14 @@ class Server:
         
         while (send):     
             try:
-                data = pickle.dumps(gameData)
-                clientSocket.send(b"game-" + struct.pack('!i', len(data)))
-                clientSocket.send(data)
+                d = pickle.dumps(gameData)
+                clientSocket.send(b"game-" + struct.pack('!i', len(d)))
+                clientSocket.send(d)
                 send = False
             except:
                 pass
         
-        clientSocket.send(("connect-" + str(room._clients.index(clientSocket))).encode())
+        clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
         
         if (len(room._clients) == playerNumber):
             random.shuffle(room._clients)
@@ -106,10 +108,8 @@ class Server:
         room = self._rooms[playerNumber][roomId]
 
         while (room._game._gameState != Game.GameState.End):
-            data = None
-            
             try:
-                data = clientSocket.recv(1024)
+                data += clientSocket.recv(1024)
             except:
                 pass
                 
@@ -134,6 +134,8 @@ class Server:
                         if (client != clientSocket):
                             client.send(b"game-" + struct.pack('!i', size))
                             client.send(data)
+                            
+                    data = data[size:]
                 elif (data == b"disconnect"):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
