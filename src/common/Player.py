@@ -1,7 +1,6 @@
 from common import Card
 from common import Contract
 from common import Family
-from common import GUI
 from common import common
 from PyQt5.QtCore import QCoreApplication
 from PyQt5 import QtTest
@@ -9,6 +8,7 @@ from PyQt5 import QtTest
 class Player:
     def __init__(self):
         self._name = "Player"
+        self._avatar = None
         self._folds = []
         self._cards = []
         self._attackTeam = False
@@ -44,7 +44,7 @@ class Player:
     def teamKnown(self) -> bool:
         return self._teamKnown
 
-    def chooseContract(self, gui: GUI.GUI, contract: Contract.Contract) -> Contract:
+    def chooseContract(self, gui, contract: Contract.Contract) -> Contract:
         possibleContracts = []
         
         if (contract):
@@ -135,7 +135,7 @@ class Player:
             
             return guessContract
     
-    def callKing(self, gui: GUI.GUI) -> Family:
+    def callKing(self, gui) -> Family:
         strFamilies = {}
         choices = []
         
@@ -193,7 +193,7 @@ class Player:
 
         return calledKing
     
-    def doDog(self, gui: GUI.GUI, dog: list) -> list:
+    def doDog(self, gui, dog: list) -> list:
         newDog = []
         
         self._cards += dog
@@ -366,7 +366,7 @@ class Player:
 
         return enabledCards
 
-    def playCard(self, gui: GUI.GUI, players: list, cards: dict, firstRound: bool, calledKing: Family.Family) -> Card.Card:
+    def playCard(self, gui, players: list, cards: dict, firstRound: bool, calledKing: Family.Family) -> Card.Card:
         QtTest.QTest.qWait(1000)
 
         card = None

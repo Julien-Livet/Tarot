@@ -1,10 +1,8 @@
 from common import Asset
 from common import Card
 from common import Contract
-from common import GUI
 from common import Family
 from common import FamilyCard
-from common import Server
 from common import Head
 from common import Player
 from common import common
@@ -14,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from PyQt5.QtCore import QCoreApplication
 from PyQt5 import QtTest
 import random
+from server import Server
 
 class GameState(Enum):
     Begin = 0
@@ -301,7 +300,7 @@ class GameData:
     def defenceWins(self):
         return not self.attackWins()
 
-    def tableImage(self, gui: GUI.GUI, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False, bottomPlayer: int):
+    def tableImage(self, gui, showPlayers: list, centerCards: list, showCenterCards: bool, centerCardsIsDog: bool = False, bottomPlayer: int = 0):
         assert(len(showPlayers) == self._playerNumber)
         
         tableImage = Image.new('RGBA', (int(1025 * 0.86), int(700 * 0.86)), color=(139, 69, 19))

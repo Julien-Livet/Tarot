@@ -1,5 +1,4 @@
 from common import Family
-from common import Game
 from datetime import datetime
 import pickle
 from PyQt5.QtCore import QTimer
@@ -8,15 +7,16 @@ import socket
 import threading
 import time
 
+timeout = 30
+
 class Room:
-    def __init__(self, id: int, game: Game.Game):
-        self_id = id
+    def __init__(self, id: int, game):
+        self._id = id
         self._clients = []
         self._game = game
 
 class Server:
-    def __init__(self, playerNumber, host = 'localhost', port = 12345):
-        self._playerNumber = playerNumber
+    def __init__(self, host = 'localhost', port = 12345):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.bind((host, port))
         self._socket.listen(1)
@@ -45,7 +45,7 @@ class Server:
                         self._clientRooms[clientSocket] = (playerNumber, room.id)
                         found = True
 
-                        if (len(room._clients == playerNumber):
+                        if (len(room._clients == playerNumber)):
                             room._clients = random.shuffle(room._clients)
 
                             room._game.giveHands()
@@ -60,8 +60,8 @@ class Server:
                 
                 init = False
                 
-                gameData = Game.GameData(**{key: value for key, value in vars(self._game).items() if key != "_server"]})
-                clientSocket.send(("game-") + pickle.dumps(gameData)).encode())
+                gameData = Game.GameData(**{key: value for key, value in vars(self._game).items() if key != "_server"})
+                clientSocket.send(("game-" + pickle.dumps(gameData)).encode())
                 clientSocket.send(("connect-" + str(room._clients.index(clientSocket))).encode())
         
         room = self._rooms[playerNumber][roomId]
@@ -82,6 +82,8 @@ class Server:
                         if (client != clientSocket):
                             client.send(data.encode())
                 elif (data == "disconnect"):
+                    #TODO: ...
+                    
                     pass
 
     def acceptConnections(self):
@@ -95,7 +97,7 @@ class Server:
         currentTime = datetime.now()
 
         while (self._contract == None
-               or (datetime.now() - currentTime).total_seconds() <= 30):
+               or (datetime.now() - currentTime).total_seconds() <= timeout):
             time.sleep(0.01)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
 
@@ -106,7 +108,7 @@ class Server:
         currentTime = datetime.now()
     
         while (self._calledKing == None
-               or (datetime.now() - currentTime).total_seconds() <= 30):
+               or (datetime.now() - currentTime).total_seconds() <= timeout):
             time.sleep(0.01)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
@@ -120,13 +122,26 @@ class Server:
         currentTime = datetime.now()
     
         while (self._dog == None
-               or (datetime.now() - currentTime).total_seconds() <= 30):
+               or (datetime.now() - currentTime).total_seconds() <= timeout):
             time.sleep(0.01)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._dog == None):
-            #TODO: do a random dog
-            pass
+            player = self._game._players[self._game._currentPlayer]
+            enabledCards = player.enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, True)
+            
+            cards = []
+            
+            for i in range(0, len(enabledCards)):
+                if (enabledCards[i]):
+                    cards.append(player._cards[i])
+            
+            self._dog = []
+            
+            while (len(self._dog) != len(self._game._dog)):
+                i = random.randrange(len(player._cards))
+                self._dog.append(player._cards[i])
+                del player._cards[i]
 
         return self._dog
 
@@ -135,13 +150,21 @@ class Server:
         currentTime = datetime.now()
     
         while (self._playedCard == None
-               or (datetime.now() - currentTime).total_seconds() <= 30):
+               or (datetime.now() - currentTime).total_seconds() <= timeout):
             time.sleep(0.01)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._playedCard == None):
-            #TODO: play a random card
-            pass
+            player = self._game._players[self._game._currentPlayer]
+            enabledCards = player.enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, False)
+            
+            cards = []
+            
+            for i in range(0, len(enabledCards)):
+                if (enabledCards[i]):
+                    cards.append(player._cards[i])
+            
+            self._playedCard = cards[random.randrange(len(cards))]
 
         return self._playedCard
 

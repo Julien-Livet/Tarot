@@ -5,9 +5,11 @@ from client import Client
 import io
 import math
 import os
+from PIL import Image
 from PyQt5.QtCore import QCoreApplication, QObject, Qt, QRectF, QTimer
-from PyQt5.QtGui import QKeySequence, QPixmap, QPolygonF, QTransform
-from PyQt5.QtWidgets import QApplication, QComboBox, QDialog, QHBoxLayout, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QPushButton, QShortcut
+from PyQt5.QtGui import QKeySequence, QIcon, QPixmap, QPolygonF, QTransform
+from PyQt5.QtWidgets import QApplication, QButtonGroup, QComboBox, QDialog, QFileDialog, QHBoxLayout, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QPushButton, QRadioButton, QShortcut
+from server import Server
 import threading
 
 iniFilename = os.path.dirname(__file__) + "/../../Tarot.ini"
@@ -18,11 +20,14 @@ class Window(QDialog):
         self._gui = gui
         
     def closeEvent(self, event):
-        if (self._client)
+        if (self._gui._client):
             self._gui._client.disconnect()
         
-        with open(iniFilename, 'w') as file:
-            file.write(self._gui._lineEdit.text())
+        if (self._gui._init):
+            with open(iniFilename, 'w') as file:
+                file.write(self._gui._lineEdit.text() + "\n")
+                file.write(self._gui._avatarFilename + "\n")
+                file.write(str(self._gui._localRadioButton.isChecked()) + "\n")
 
 class GUI(QObject):
     def __init__(self):
@@ -35,6 +40,9 @@ class GUI(QObject):
         self._cardSize = (0, 0)
         self._overCardRatio = 1 / 3
         self._client = None
+        self._avatar = None
+        self._avatarFilename = ""
+        self._init = False
 
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
 
@@ -71,6 +79,22 @@ class GUI(QObject):
                 self._dogIndex = i
                 break
 
+    def chooseAvatar(self):
+        options = QFileDialog.Options()
+        filename, _ = QFileDialog.getOpenFileName(self._window,
+                                                  QCoreApplication.translate("play", "Choisir un avatar"), "",
+                                                  QCoreApplication.translate("play", "Images (*.png *.xpm *.jpg); Tous les fichiers (*.*)"), options = options)
+        
+        if (filename):
+            self._avatarFilename = filename
+        
+            pixmap = QPixmap(self._avatarFilename)
+            self._avatar = Image.open(self._avatarFilename)
+
+            pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
+            
+            self._avatarButton.setIcon(QIcon(pixmap))
+
     def play(self) -> bool:
         self._dialog = Window(self)
         self._dialog.setWindowTitle(QCoreApplication.translate("play", "Choose a game"))
@@ -79,9 +103,9 @@ class GUI(QObject):
 
         self._lineEdit = QLineEdit(self._dialog)
         self._lineEdit.setMaxLength(8)
-        
-        if (os.path.exists(iniFilename)):
-            self._lineEdit.setText(file.read())
+        self._avatarButton = QPushButton(self._dialog)
+        self._avatarButton.clicked.connect(self.chooseAvatar)
+        self._avatar = None
         
         threeButton = QPushButton(QCoreApplication.translate("play", "Three players"), self._dialog)
         threeButton.clicked.connect(self.threePlayers)
@@ -90,17 +114,68 @@ class GUI(QObject):
         fiveButton = QPushButton(QCoreApplication.translate("play", "Five players"), self._dialog)
         fiveButton.clicked.connect(self.fivePlayers)
 
-        layout.addWidget(lineEdit)
+        self._localRadioButton = QRadioButton(QCoreApplication.translate("play", "Local"), self._dialog)
+        self._onlineRadioButton = QRadioButton(QCoreApplication.translate("play", "Online"), self._dialog)
+
+        button_group = QButtonGroup(self._dialog)
+        button_group.addButton(self._localRadioButton)
+        button_group.addButton(self._onlineRadioButton)
+        self._localRadioButton.setChecked(True)
+
+        if (os.path.exists(iniFilename)):
+            lines = []
+            
+            with open(iniFilename, 'r') as file:
+                lines = file.read().split("\n")
+                
+            name = lines[0]
+            avatarFilename = lines[1]
+            local = lines[2]
+            self._lineEdit.setText(name)
+            
+            if (avatarFilename):
+                self._avatarFilename = avatarFilename
+                
+                pixmap = QPixmap(avatarFilename)
+                self._avatar = Image.open(avatarFilename)
+
+                pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
+                
+                self._avatarButton.setIcon(QIcon(pixmap))
+                
+            self._localRadioButton.setChecked(local == "True")
+            self._onlineRadioButton.setChecked(local == "False")
+        
+        hBoxLayout = QHBoxLayout()
+        hBoxLayout.addWidget(self._lineEdit)
+        hBoxLayout.addWidget(self._avatarButton)
+
+        layout.addLayout(hBoxLayout)
         layout.addWidget(threeButton)
         layout.addWidget(fourButton)
         layout.addWidget(fiveButton)
+        layout.addWidget(self._localRadioButton)
+        layout.addWidget(self._onlineRadioButton)
 
         self._dialog.setLayout(layout)
 
+        self._init = True
+        
         self._dialog.exec()
 
         if (self._dialog.result() == QDialog.Rejected):
-            return
+            return True
+
+        host = "localhost"
+
+        if (self._localRadioButton.isChecked()):
+            server = Server.Server()
+            
+            for i in range(1, len(self._playerNumber)):
+                client = Client.Client(self, self._playerNumber, False, host)
+        else:
+            #TODO: put a valid server address
+            host = ""
 
         if (self._playerNumber == 3):
             self._globalRatio = 0.85
@@ -111,7 +186,7 @@ class GUI(QObject):
 
         self._cardSize = (int(56 * self._globalRatio), int(109 * self._globalRatio))
 
-        self._client = Client(self, self._playerNumber)
+        self._client = Client.Client(self, self._playerNumber, True, host)
 
         self._window = Window(self)
         self._window.setWindowTitle(QCoreApplication.translate("play", "Tarot"))
@@ -187,6 +262,8 @@ class GUI(QObject):
         self._centerTimer.setSingleShot(True)
         self._centerTimer.timeout.connect(self.centerWindow)
         self._centerTimer.start()
+        
+        return False
 
     def centerWindow(self):
         self._window.show()
