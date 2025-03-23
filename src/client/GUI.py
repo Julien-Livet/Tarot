@@ -18,16 +18,25 @@ class Window(QDialog):
     def __init__(self, gui):
         super().__init__()
         self._gui = gui
-        
+
     def closeEvent(self, event):
         if (self._gui._client):
             self._gui._client.disconnect()
-        
+
         if (self._gui._init):
             with open(iniFilename, 'w') as file:
                 file.write(self._gui._lineEdit.text() + "\n")
                 file.write(self._gui._avatarFilename + "\n")
                 file.write(str(self._gui._localRadioButton.isChecked()) + "\n")
+
+        if (self._gui._localServer):
+            self._gui._localServer.disconnect()
+
+        for client in self._gui._localClients:
+            client.disconnect()
+
+        if (self._gui._client):
+            self._gui._client.disconnect()
 
 class GUI(QObject):
     def __init__(self):
@@ -43,8 +52,20 @@ class GUI(QObject):
         self._avatar = None
         self._avatarFilename = ""
         self._init = False
+        self._localServer = None
+        self._localClients = []
 
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
+
+    def __del__(self):
+        if (self._localServer):
+            self._localServer.disconnect()
+            
+        for client in self._localClients:
+            client.disconnect()
+
+        if (self._client):
+            self._client.disconnect()
 
     def threePlayers(self):
         self._playerNumber = 3
@@ -65,7 +86,13 @@ class GUI(QObject):
             self._dialog.accept()
 
     def displayTable(self, centerCards: list, displayCenterCards: bool = False, centerCardsIsDog: bool = False):
-        img = self._gameData.tableImage(self, self._showPlayers, centerCards, displayCenterCards, centerCardsIsDog, self._client._id)
+        if (not self._client or not self._client._id):
+            return
+
+        img = self._client._gameData.tableImage(self,
+                                                [i == self._client._id for i in range(0, self._client._gameData._playerNumber)],
+                                                centerCards, displayCenterCards,
+                                                centerCardsIsDog, self._client._id)
 
         byteArray = io.BytesIO()
         img.save(byteArray, format = 'PNG')
@@ -89,7 +116,7 @@ class GUI(QObject):
             self._avatarFilename = filename
         
             pixmap = QPixmap(self._avatarFilename)
-            self._avatar = Image.open(self._avatarFilename)
+            self._avatar = Image.open(self._avatarFilename).resize(64, 64)
 
             pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
             
@@ -169,12 +196,12 @@ class GUI(QObject):
         host = "localhost"
 
         if (self._localRadioButton.isChecked()):
-            server = Server.Server()
-            threading.Thread(target = server.acceptConnections).start()
+            self._localServer = Server.Server()
+            threading.Thread(target = self._localServer.acceptConnections).start()
             
             for i in range(1, self._playerNumber):
-                client = Client.Client(self, self._playerNumber, False, host)
-                client._socket.send(("room-" + str(self._playerNumber)).encode())
+                self._localClients.append(Client.Client(self, self._playerNumber, False, host))
+                self._localClients[-1]._socket.send(("room-" + str(self._playerNumber)).encode())
         else:
             #TODO: put a valid server address
             host = ""
@@ -282,47 +309,52 @@ class GUI(QObject):
         y = (screen_height - window_height) // 2
 
         self._window.move(x, y)
-    
+
     def ok(self):
         self._ok = True
-        
+
     def monitor(self):
-        if (self._client or self._client._gameData == None):
+        if (not self._client or not self._client._gameData):
             return
+
+        from common import Game
+
+        gameData = self._client._gameData
+        gameState = gameData._gameState
         
-        if (self._gameData._gameState == Game.GameState.Begin
-            or self._gameData._gameState == Game.GameState.End):
-            self.displayTable([])
-        elif (self._gameData._gameState == Game.GameState.ChooseContract
-              or self._gameData._gameState == Game.GameState.CallKing):
-            self.displayTable(self._gameData._dog, False, True)
-        elif (self._gameData._gameState == Game.GameState.ShowDog):
-            self.displayTable(self._gameData._dog, True)
-        elif (self._gameData._gameState == Game.GameState.DoDog):
+        if (gameState == Game.GameState.Begin
+            or gameState == Game.GameState.End):
+            self.displayTable(gameData._dog, False, True)
+        elif (gameState == Game.GameState.ChooseContract
+              or gameState == Game.GameState.CallKing):
+            self.displayTable(gameData._dog, False, True)
+        elif (gameState == Game.GameState.ShowDog):
+            self.displayTable(gameData._dog, True)
+        elif (gameState == Game.GameState.DoDog):
             self.displayTable([], False, True)
         
         take = ""
         
-        if (self._gameData._calledKing):
+        if (gameData._calledKing):
             take = QCoreApplication.translate("monitor", "\nCalled king: ") \
-                   + str(self._game._calledKing)
+                   + str(gameData._calledKing)
 
-        if (self._gameData._contract):
+        if (gameData._contract):
             take += QCoreApplication.translate("monitor", "\nContract: ") \
-                    + str(self._gameData._contract) \
+                    + str(gameData._contract) \
                     + QCoreApplication.translate("play", " ({0} points)") \
-                    .format(self._gameData.attackTargetPoints())
+                    .format(gameData.attackTargetPoints())
     
         self._pointsLabel.setText(QCoreApplication.translate("monitor",
                                                              "Attack points: {0} - Defence points: {1}")
-                                  .format(self._gameData.attackPoints(),
-                                          self._gameData.defencePoints())
+                                  .format(gameData.attackPoints(),
+                                          gameData.defencePoints())
                                   + take)
                                   
         if (self._tableLabel._mousePressPos):
-            for i in range(0, self._gameData._playerNumber):
-                if (i == self._gameData._currentPlayer):
-                    radius = common.playerRadius(self._gameData._playerNumber, self._globalRatio)
+            for i in range(0, gameData._playerNumber):
+                if (i == gameData._currentPlayer):
+                    radius = common.playerRadius(gameData._playerNumber, self._globalRatio)
                     
                     positions = [(self._tableLabel.pixmap().width() // 2,
                                   self._tableLabel.pixmap().height() // 2 + radius)]
@@ -334,7 +366,7 @@ class GUI(QObject):
                         y = self._tableLabel.pixmap().height() / 2 + radius * math.cos(math.radians(angles[-1]))
                         positions.append((x, y))
 
-                    n = len(self._gameData._players[i]._cards)
+                    n = len(gameData._players[i]._cards)
                     w = (n - 1) * self._cardSize[0] * self._overCardRatio + self._cardSize[0]
 
                     for j in range(0, n):
@@ -357,17 +389,17 @@ class GUI(QObject):
                         if (polygon.containsPoint(self._tableLabel._mousePressPos, Qt.WindingFill)):
                             enabledCards = []
                         
-                            enabledCards = self._gameData._players[i].enabledCards(self._gameData._centerCards,
-                                                                                   self._gameData._firstRound,
-                                                                                   self._gameData._calledKing,
-                                                                                   self._dogLabel.isVisible())
+                            enabledCards = gameData._players[i].enabledCards(gameData._centerCards,
+                                                                             gameData._firstRound,
+                                                                             gameData._calledKing,
+                                                                             self._dogLabel.isVisible())
 
                             if (enabledCards[j]):
                                 if (self._cardComboBox.isVisible()):
-                                    self._cardComboBox.setCurrentText(self._gameData._players[i]._cards[j].name())
+                                    self._cardComboBox.setCurrentText(gameData._players[i]._cards[j].name())
                                 elif (self._dogLabel.isVisible()):
                                     self._tableLabel._mousePressPos = None
-                                    self._dogComboBoxes[self._dogIndex].setCurrentText(self._gameData._players[i]._cards[j].name())
+                                    self._dogComboBoxes[self._dogIndex].setCurrentText(gameData._players[i]._cards[j].name())
                                     self._dogIndex += 1
                                     if (self._dogIndex >= 6 or not self._dogComboBoxes[self._dogIndex].isVisible()):
                                         self._dogIndex = 0
@@ -376,28 +408,28 @@ class GUI(QObject):
 
                     break
     
-        if (self._gameData._gameState == Game.GameState.End):
-            if (self._gameData.attackPoints() == 0
-                and self._gameData.defencePoints() == 0):
+        if (gameData._gameState == Game.GameState.End):
+            if (gameData.attackPoints() == 0
+                and gameData.defencePoints() == 0):
                 QMessageBox.information(self._window,
                                         QCoreApplication.translate("monitor", "Game over"),
                                         QCoreApplication.translate("monitor", "Nobody takes!"))
                 
                 self._window.close()
             else:
-                if (self._gameData.attackWins()):
+                if (gameData.attackWins()):
                     QMessageBox.information(self._window,
                                             QCoreApplication.translate("monitor", "Game over"),
-                                            (QCoreApplication.translate("monitor", "Well done!") if self._gameData._players[0].attackTeam() else QCoreApplication.translate("monitor", "Shame!"))
+                                            (QCoreApplication.translate("monitor", "Well done!") if gameData._players[self._client._id].attackTeam() else QCoreApplication.translate("monitor", "Shame!"))
                                             + QCoreApplication.translate("monitor", " Attack wins ({0} points for {1} points)!")
                                             .format(self._gameData.attackPoints(),
                                                     self._gameData.attackTargetPoints()))
                 else:
                     QMessageBox.information(self._window,
                                             QCoreApplication.translate("monitor", "Game over"),
-                                            (QCoreApplication.translate("monitor", "Well done!") if self._gameData._players[0].defenceTeam() else QCoreApplication.translate("monitor", "Shame!"))
+                                            (QCoreApplication.translate("monitor", "Well done!") if gameData._players[self._client._id].defenceTeam() else QCoreApplication.translate("monitor", "Shame!"))
                                             + QCoreApplication.translate("monitor", " Attack loses ({0} points for {1} points)!")
-                                            .format(self._gameData.attackPoints(),
-                                                    self._gameData.attackTargetPoints()))
+                                            .format(gameData.attackPoints(),
+                                                    gameData.attackTargetPoints()))
 
                 self._window.close()

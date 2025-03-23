@@ -140,7 +140,7 @@ class GameData:
         random.shuffle(self._cards)
         assert(len(self._cards) == 78)
         
-        self._players = [Player.Player(self, i) for i in range(0, self._playerNumber)]
+        self._players = [Player.Player() for i in range(0, self._playerNumber)]
         
         n = 78 // 3 // self._playerNumber
         
@@ -344,14 +344,14 @@ class GameData:
             draw.text((0, 0), text, font = font, fill = "black")
             textImage = textImage.resize((int(textImage.width * gui._globalRatio),
                                           int(textImage.height * gui._globalRatio)))
-            textImage = textImage.rotate(angles[i], expand = True)
+            textImage = textImage.rotate(angles[j], expand = True)
             
-            x = positions[i][0]
-            y = positions[i][1]
+            x = positions[j][0]
+            y = positions[j][1]
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (int(x - gui._globalRatio * 80 * math.sin(math.radians(angles[i])) - textImage.width / 2),
-                                    int(y - gui._globalRatio * 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
+            image.paste(textImage, (int(x - gui._globalRatio * 80 * math.sin(math.radians(angles[j])) - textImage.width / 2),
+                                    int(y - gui._globalRatio * 80 * math.cos(math.radians(angles[j])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
@@ -368,14 +368,14 @@ class GameData:
                     bgImg = img.resize((int(img.width + 10),
                                         int(img.height + 10)))
                     bgImg.paste((255, 255, 0, 128), [0, 0, bgImg.width, bgImg.height])
-                    bgImg = bgImg.rotate(angles[i], expand = True)
+                    bgImg = bgImg.rotate(angles[j], expand = True)
                     
                     image = Image.new('RGBA', (tableImage.width, tableImage.height))
                     image.paste(bgImg, (int(x - bgImg.width / 2),
                                         int(y - bgImg.height / 2)))
                     tableImage = Image.alpha_composite(tableImage, image)    
 
-                img = img.rotate(angles[i], expand = True)
+                img = img.rotate(angles[j], expand = True)
                 x -= img.width / 2
                 y -= img.height / 2
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
@@ -419,13 +419,18 @@ class Game(GameData):
         for i in range(0, self._playerNumber):
             p = (self._firstPlayer + i) % self._playerNumber
             self._currentPlayer = p
-            self._state = GameSate.ChooseContract
+            self._state = GameState.ChooseContract
             contract = self._server.chooseContract(self)
             if (contract):
                 self._taker = p
                 self._contract = contract
         
         if (not self._contract):
+            self._gameState = GameState.ShowDog
+            QtTest.QTest.qWait(1000)
+
+            self._gameState = GameState.End
+ 
             return
 
         self._players[self._taker]._attackTeam = True

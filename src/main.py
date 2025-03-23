@@ -13,4 +13,8 @@ if (__name__ == "__main__"):
     gui = GUI.GUI()
 
     if (not gui.play()):
-        sys.exit(app.exec_())
+        r = app.exec()
+        
+        del gui
+        
+        sys.exit(r)

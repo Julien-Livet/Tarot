@@ -4,10 +4,11 @@ from common import Family
 from common import common
 from PyQt5.QtCore import QCoreApplication
 from PyQt5 import QtTest
+import random
 
 class Player:
     def __init__(self):
-        self._name = "Player"
+        self._name = "Player" + str(random.randrange(100))
         self._avatar = None
         self._connected = True
         self._idle = False
