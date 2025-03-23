@@ -9,6 +9,8 @@ class Player:
     def __init__(self):
         self._name = "Player"
         self._avatar = None
+        self._connected = True
+        self._idle = False
         self._folds = []
         self._cards = []
         self._attackTeam = False

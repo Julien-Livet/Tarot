@@ -27,19 +27,19 @@ class Server:
 
     def __del__(self):
         self._socket.close()
-        
+
     def handleClient(self, clientSocket, clientAddress):
         init = True
-        
+
         while (init):
             data = clientSocket.recv(1024).decode()
-
+            print("server", data)
             if (data and data.startswith("room-")):
                 playerNumber = int(data.split("room-")[1])
             
                 found = False
                     
-                for room in rooms[playerNumber]:
+                for room in self._rooms[playerNumber]:
                     if (len(room.players) < playerNumber):
                         room._clients.append(clientSocket)
                         self._clientRooms[clientSocket] = (playerNumber, room.id)
@@ -52,7 +52,7 @@ class Server:
                             threading.Thread(target = room._game.play).start()
 
                 if (not found):
-                    room = Room(self._roomCount, Game(self, playerNumber))
+                    room = Room(self._roomCount, Game.Game(self, playerNumber))
                     self._rooms[playerNumber][self._roomCount] = room
                     self._clientRooms[clientSocket] = (playerNumber, self._roomCount)
                     self._gameRooms[room._game] = (playerNumber, self._roomCount)
@@ -89,7 +89,7 @@ class Server:
     def acceptConnections(self):
         while (True):
             clientSocket, clientAddress = self._socket.accept()
-            
+
             threading.Thread(target = self.handleClient, args = (clientSocket, clientAddress)).start()
         
     def chooseContract(self, game):

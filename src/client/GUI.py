@@ -170,9 +170,11 @@ class GUI(QObject):
 
         if (self._localRadioButton.isChecked()):
             server = Server.Server()
+            threading.Thread(target = server.acceptConnections).start()
             
-            for i in range(1, len(self._playerNumber)):
+            for i in range(1, self._playerNumber):
                 client = Client.Client(self, self._playerNumber, False, host)
+                client._socket.send(("room-" + str(self._playerNumber)).encode())
         else:
             #TODO: put a valid server address
             host = ""
@@ -187,6 +189,7 @@ class GUI(QObject):
         self._cardSize = (int(56 * self._globalRatio), int(109 * self._globalRatio))
 
         self._client = Client.Client(self, self._playerNumber, True, host)
+        self._client._socket.send(("room-" + str(self._playerNumber)).encode())
 
         self._window = Window(self)
         self._window.setWindowTitle(QCoreApplication.translate("play", "Tarot"))
@@ -284,7 +287,7 @@ class GUI(QObject):
         self._ok = True
         
     def monitor(self):
-        if (self._gameData == None):
+        if (self._client or self._client._gameData == None):
             return
         
         if (self._gameData._gameState == Game.GameState.Begin

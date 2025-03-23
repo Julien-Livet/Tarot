@@ -1,8 +1,9 @@
 from common import Game
 import socket
+import threading
 
 class Client:
-    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost'):
+    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost', port = 12345):
         assert(3 <= playerNumber and playerNumber <= 5)
 
         self._gui = gui
@@ -24,7 +25,7 @@ class Client:
     def receiveData(self):
         while (not self._isClosed):
             data = self._socket.recv(1024).decode()
-        
+
             if (data.startswith("game-")):
                 gameData = int(data.split("game-")[1])
 
