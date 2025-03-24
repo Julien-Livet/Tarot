@@ -35,7 +35,7 @@ class Client:
         
     def receiveData(self):
         data = b""
-            
+
         while (not self._closed):
             try:
                 data += self._socket.recv(1024)
@@ -44,7 +44,7 @@ class Client:
 
             if (data):
                 if (data.startswith(b"game-")):
-                    ok, data, obj = common.receiveDataMessage(self._socket, b"game", self._closed)
+                    ok, data, obj = common.receiveDataMessage(self._socket, data, b"game-", self._closed)
 
                     self._gameData = obj
 
@@ -59,20 +59,24 @@ class Client:
                     self._gameData._players[self._id]._avatar = self._gui._avatar
                     self._gameData._players[self._id]._isHuman = self._isHuman
 
-                    common.sendDataMessage(self._socket, b"game-", self._gameData)
+                    common.sendDataMessage(self._socket, b"game-", self._gameData, self._closed)
                     
                     data = data[len(b"connect-") + 4:]
                 elif (data.startswith(b"chooseContract")):
                     contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
 
-                    common.sendDataMessage(self._socket, b"chosenContract-", contract)
+                    common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed)
 
                     data = data[len(b"chooseContract"):]
                 elif (data.startswith(b"callKing")):
                     calledKing = self._gameData._players[self._id].callKing(self._gui)
 
-                    common.sendDataMessage(self._socket, b"calledKing-", calledKing)
+                    common.sendDataMessage(self._socket, b"calledKing-", calledKing, self._closed)
 
                     data = data[len(b"callKing"):]
+                elif (data.startswith(b"doDog")):
+                    #TODO: ...
+
+                    data = data[len(b"doDog"):]
                 elif (data == b"play"):
                     pass

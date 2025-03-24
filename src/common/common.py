@@ -116,10 +116,13 @@ def sortCards(cards: list) -> list:
         
     return cards
 
-def sendDataMessage(socket, message, obj):
+def sendDataMessage(socket, message, obj, closed):
     send = True
                     
     while (send):     
+        if (closed):
+            return
+            
         try:
             d = pickle.dumps(obj)
             socket.send(message + struct.pack('!i', len(d)))

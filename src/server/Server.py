@@ -88,14 +88,8 @@ class Server:
             if (key != "_server"):
                 setattr(gameData, key, value)
 
-        send = True
-        
-        while (send):
-            if (self._closed):
-                return
-            
-            common.sendDataMessage(clientSocket, b"game", gameData)
-        
+        common.sendDataMessage(clientSocket, b"game-", gameData, self._closed)
+
         clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
         
         if (not room._started and len(room._clients) == playerNumber):
@@ -118,17 +112,13 @@ class Server:
 
             if (data):
                 if (data.startswith(b"game-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, b"game")
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game", self._closed)
 
                     room._game.__dict__.update(vars(obj))
 
                     for client in room._clients:
                         if (client != clientSocket):
-                            try:
-                                client.send(b"game-" + struct.pack('!i', size))
-                                client.send(data)
-                            except TimeoutError:
-                                pass
+                            common.sendDataMessage(client, b"game", data)
                 elif (data.startswith(b"disconnect")):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
@@ -137,13 +127,13 @@ class Server:
                     
                     pass
                 elif (data.startswith(b"chosenContract-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, b"chosenContract", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract", self._closed)
 
                     self._contract = obj
                     
                     room._chosenContract = True
                 elif (data.startswith(b"calledKing-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, b"calledKing", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing", self._closed)
 
                     self._calledKing = obj
 
