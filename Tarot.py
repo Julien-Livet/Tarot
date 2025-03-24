@@ -1439,7 +1439,9 @@ class Game:
                     self._players[i]._attackTeam = False
                     self._players[i]._teamKnown = True
 
-        self._dog = self._players[self._taker].doDog(self._dog, gui)
+        if (self._contract == Contract.Little
+            or self._contract == Contract.Guard):
+            self._dog = self._players[self._taker].doDog(self._dog, gui)
 
         n = (78 - len(self._dog)) // self._playerNumber
 
