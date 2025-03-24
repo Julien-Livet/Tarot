@@ -58,7 +58,7 @@ class Client:
                     self._gameData._players[self._id]._name = self._gui._lineEdit.text()
                     self._gameData._players[self._id]._avatar = self._gui._avatar
                     self._gameData._players[self._id]._isHuman = self._isHuman
-                    print("avatar", self._gui._avatar)
+
                     common.sendDataMessage(self._socket, b"game-", self._gameData, self._closed)
                     
                     data = data[len(b"connect-") + 4:]
