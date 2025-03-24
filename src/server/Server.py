@@ -219,8 +219,8 @@ class Server:
                     cards.append(player._cards[i])
             
             self._dog = []
-            
-            while (len(self._dog) != len(self._game._dog)):
+
+            while (len(self._dog) != len(room._game._dog)):
                 i = random.randrange(len(player._cards))
                 self._dog.append(player._cards[i])
                 del player._cards[i]
