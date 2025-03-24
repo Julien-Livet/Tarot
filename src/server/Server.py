@@ -1,6 +1,6 @@
 from common import Family
+from common import common
 from datetime import datetime
-import pickle
 import random
 import socket
 import struct
@@ -93,14 +93,8 @@ class Server:
         while (send):
             if (self._closed):
                 return
-                
-            try:
-                d = pickle.dumps(gameData)
-                clientSocket.send(b"game-" + struct.pack('!i', len(d)))
-                clientSocket.send(d)
-                send = False
-            except TimeoutError:
-                pass
+            
+            common.sendDataMessage(clientSocket, b"game", gameData)
         
         clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
         
@@ -124,20 +118,9 @@ class Server:
 
             if (data):
                 if (data.startswith(b"game-")):
-                    size = struct.unpack('!i', data[len(b"game-"):len(b"game-") + 4])[0]
+                    ok, data, obj = common.receiveDataMessage(clientSocket, b"game")
 
-                    data = data[len(b"game-") + 4:]
-
-                    while (len(data) < size):
-                        if (self._closed):
-                            return
-
-                        try:
-                            data += clientSocket.recv(1024)
-                        except TimeoutError:
-                            pass
-
-                    room._game.__dict__.update(vars(pickle.loads(data[:size])))
+                    room._game.__dict__.update(vars(obj))
 
                     for client in room._clients:
                         if (client != clientSocket):
@@ -156,39 +139,17 @@ class Server:
                     
                     pass
                 elif (data.startswith(b"chosenContract-")):
-                    size = struct.unpack('!i', data[len(b"chosenContract-"):len(b"chosenContract-") + 4])[0]
+                    ok, data, obj = common.receiveDataMessage(clientSocket, b"chosenContract", self._closed)
 
-                    data = data[len(b"chosenContract-") + 4:]
-                    
-                    while (len(data) < size):
-                        if (self._closed):
-                            return
-                    
-                        try:
-                            data += clientSocket.recv(1024)
-                        except TimeoutError:
-                            pass
-
-                    self._contract = pickle.loads(data[:size])
+                    self._contract = obj
 
                     data = data[size:]
                     
                     room._chosenContract = True
                 elif (data.startswith(b"calledKing-")):
-                    size = struct.unpack('!i', data[len(b"calledKing-"):len(b"calledKing-") + 4])[0]
+                    ok, data, obj = common.receiveDataMessage(clientSocket, b"calledKing", self._closed)
 
-                    data = data[len(b"calledKing-") + 4:]
-                    
-                    while (len(data) < size):
-                        if (self._closed):
-                            return
-                    
-                        try:
-                            data += clientSocket.recv(1024)
-                        except TimeoutError:
-                            pass
-
-                    self._calledKing = pickle.loads(data[:size])
+                    self._calledKing = obj
 
                     data = data[size:]
 

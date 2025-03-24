@@ -4,9 +4,10 @@ from common import Family
 from common import FamilyCard
 from common import Head
 import os
+import pickle
 from PIL import Image
+import struct
 import sys
-import threading
 
 def maximumPoints():
     cards = []
@@ -114,3 +115,38 @@ def sortCards(cards: list) -> list:
         cards += f
         
     return cards
+
+def sendDataMessage(socket, message, obj):
+    send = True
+                    
+    while (send):     
+        try:
+            d = pickle.dumps(obj)
+            socket.send(message + struct.pack('!i', len(d)))
+            socket.send(d)
+            send = False
+        except TimeoutError:
+            pass
+
+def receiveDataMessage(socket, data, message, closed):
+    if (not data.startswith(message)):
+        return (False, data, None)
+
+    size = struct.unpack('!i', data[len(message):len(message) + 4])[0]
+
+    data = data[len(message) + 4:]
+    
+    while (len(data) < size):
+        if (closed):
+            return
+    
+        try:
+            data += socket.recv(1024)
+        except TimeoutError:
+            pass
+
+    obj = pickle.loads(data[:size])
+
+    data = data[size:]
+
+    return (True, data, obj)    

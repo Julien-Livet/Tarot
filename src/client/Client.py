@@ -1,5 +1,5 @@
 from common import Game
-import pickle
+from common import common
 import socket
 import struct
 import threading
@@ -44,17 +44,9 @@ class Client:
 
             if (data):
                 if (data.startswith(b"game-")):
-                    size = struct.unpack('!i', data[len(b"game-"):len(b"game-") + 4])[0]
-                    
-                    data = data[len(b"game-") + 4:]
+                    ok, data, obj = common.receiveDataMessage(self._socket, b"game", self._closed)
 
-                    while (len(data) < size):
-                        try:
-                            data += self._socket.recv(1024)
-                        except TimeoutError:
-                            pass
-
-                    self._gameData = pickle.loads(data[:size])
+                    self._gameData = obj
 
                     if (self._id):
                         self._gameData._players[self._id]._name = self._gui._lineEdit.text()
@@ -69,46 +61,19 @@ class Client:
                     self._gameData._players[self._id]._avatar = self._gui._avatar
                     self._gameData._players[self._id]._isHuman = self._isHuman
 
-                    send = True
-                    
-                    while (send):     
-                        try:
-                            d = pickle.dumps(self._gameData)
-                            self._socket.send(b"game-" + struct.pack('!i', len(d)))
-                            self._socket.send(d)
-                            send = False
-                        except TimeoutError:
-                            pass
+                    common.sendDataMessage(self._socket, b"game-", self._gameData)
                     
                     data = data[len(b"connect-") + 4:]
                 elif (data.startswith(b"chooseContract")):
                     contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
 
-                    send = True
-                    
-                    while (send):     
-                        try:
-                            d = pickle.dumps(contract)
-                            self._socket.send(b"chosenContract-" + struct.pack('!i', len(d)))
-                            self._socket.send(d)
-                            send = False
-                        except TimeoutError:
-                            pass
+                    common.sendDataMessage(self._socket, b"chosenContract-", contract)
 
                     data = data[len(b"chooseContract"):]
                 elif (data.startswith(b"callKing")):
                     calledKing = self._gameData._players[self._id].callKing(self._gui)
 
-                    send = True
-                    
-                    while (send):     
-                        try:
-                            d = pickle.dumps(calledKing)
-                            self._socket.send(b"calledKing-" + struct.pack('!i', len(d)))
-                            self._socket.send(d)
-                            send = False
-                        except TimeoutError:
-                            pass
+                    common.sendDataMessage(self._socket, b"calledKing-", calledKing)
 
                     data = data[len(b"callKing"):]
                 elif (data == b"play"):
