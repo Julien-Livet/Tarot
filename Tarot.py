@@ -1405,12 +1405,12 @@ class Game:
                     self._players[i]._attackTeam = False
                     self._players[i]._teamKnown = True
 
+        kingInDog = False
+
         if (self._contract == Contract.Little
             or self._contract == Contract.Guard):
             gui.displayTable(self._dog, True, True)
             QtTest.QTest.qWait(2000)
-
-            kingInDog = False
 
             for card in self._dog:
                 if (card.isFamilyCard()
@@ -1419,27 +1419,27 @@ class Game:
                     kingInDog = True
                     break
 
-            if (not kingInDog):
-                found = False
+        if (not kingInDog):
+            found = False
 
-                for i in range(0, len(self._players)):
-                    for card in self._players[i].cards():
-                        if (card.isFamilyCard()
-                            and card.familyCard().family() == self._calledKing
-                            and card.familyCard().value() == 14):
-                            self._players[i]._attackTeam = True
-                            found = True
-                            break
-                    
-                    if (found):
+            for i in range(0, len(self._players)):
+                for card in self._players[i].cards():
+                    if (card.isFamilyCard()
+                        and card.familyCard().family() == self._calledKing
+                        and card.familyCard().value() == 14):
+                        self._players[i]._attackTeam = True
+                        found = True
                         break
-            else:
-                for i in range(0, len(self._players)):
-                    if (i != self._taker):
-                        self._players[i]._attackTeam = False
-                        self._players[i]._teamKnown = True
+                
+                if (found):
+                    break
+        else:
+            for i in range(0, len(self._players)):
+                if (i != self._taker):
+                    self._players[i]._attackTeam = False
+                    self._players[i]._teamKnown = True
 
-            self._dog = self._players[self._taker].doDog(self._dog, gui)
+        self._dog = self._players[self._taker].doDog(self._dog, gui)
 
         n = (78 - len(self._dog)) // self._playerNumber
 
