@@ -209,8 +209,8 @@ class Server:
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._dog == None):
-            player = room._game._players[self._game._currentPlayer]
-            enabledCards = player.enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, True)
+            player = room._game._players[room._game._currentPlayer]
+            enabledCards = player.enabledCards(room._game._centerCards, room._game._firstRound, room._game._calledKing, True)
             
             cards = []
             
@@ -231,6 +231,10 @@ class Server:
         self._playedCard = None
         currentTime = datetime.now()
 
+        playerNumber, roomId = self._gameRooms[game]
+        room = self._rooms[playerNumber][roomId]
+        room._clients[game._currentPlayer].send(b"playCard")
+        
         while (not self._closed
                and (self._playedCard == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
@@ -238,8 +242,8 @@ class Server:
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._playedCard == None):
-            player = self._game._players[self._game._currentPlayer]
-            enabledCards = player.enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, False)
+            player = self._game._players[room._game._currentPlayer]
+            enabledCards = player.enabledCards(room._game._centerCards, room._game._firstRound, room._game._calledKing, False)
             
             cards = []
             
