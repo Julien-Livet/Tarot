@@ -5,7 +5,7 @@ import struct
 import threading
 
 class Client:
-    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost', port = 1234):
+    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost', port = 12345):
         assert(3 <= playerNumber and playerNumber <= 5)
 
         self._gui = gui
@@ -81,7 +81,7 @@ class Client:
                             pass
                     
                     data = data[len(b"connect-") + 4:]
-                elif (data == b"chooseContract"):
+                elif (data.startswith(b"chooseContract")):
                     contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
 
                     send = True

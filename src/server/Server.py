@@ -18,7 +18,7 @@ class Room:
         self._started = False
 
 class Server:
-    def __init__(self, host = 'localhost', port = 1234):
+    def __init__(self, host = 'localhost', port = 12345):
         self._closed = True
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.bind((host, port))
@@ -145,7 +145,7 @@ class Server:
                             client.send(data)
 
                     data = data[size:]
-                elif (data == b"disconnect"):
+                elif (data.startswith(b"disconnect")):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
                     
