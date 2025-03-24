@@ -118,7 +118,7 @@ class Server:
 
                     for client in room._clients:
                         if (client != clientSocket):
-                            common.sendDataMessage(client, b"game-", data)
+                            common.sendDataMessage(client, b"game-", obj, self._closed)
                 elif (data.startswith(b"disconnect")):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
