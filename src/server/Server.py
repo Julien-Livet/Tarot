@@ -1,7 +1,6 @@
 from common import Family
 from datetime import datetime
 import pickle
-from PyQt5.QtCore import QTimer
 import random
 import socket
 import struct
@@ -15,6 +14,8 @@ class Room:
         self._id = id
         self._clients = []
         self._game = game
+        self._chosenContract = False
+        self._started = False
 
 class Server:
     def __init__(self, host = 'localhost', port = 12345):
@@ -48,14 +49,14 @@ class Server:
         data = b""
             
         while (init):
+            if (self._closed):
+                return
+
             try:
                 data += clientSocket.recv(1024)
             except:
                 pass
                 
-            if (self._closed):
-                return
-
             if (data and data.startswith(b"room-")):
                 playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
             
@@ -89,7 +90,10 @@ class Server:
 
         send = True
         
-        while (send):     
+        while (send):
+            if (self._closed):
+                return
+                
             try:
                 d = pickle.dumps(gameData)
                 clientSocket.send(b"game-" + struct.pack('!i', len(d)))
@@ -100,7 +104,9 @@ class Server:
         
         clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
         
-        if (len(room._clients) == playerNumber):
+        if (not room._started and len(room._clients) == playerNumber):
+            room._started = True
+
             random.shuffle(room._clients)
 
             threading.Thread(target = room._game.play).start()
@@ -121,27 +127,51 @@ class Server:
                     size = struct.unpack('!i', data[len(b"game-"):len(b"game-") + 4])[0]
 
                     data = data[len(b"game-") + 4:]
-                    
+
                     while (len(data) < size):
+                        if (self._closed):
+                            return
+
                         try:
-                            data += self._socket.recv(1024)
+                            data += clientSocket.recv(1024)
                         except:
                             pass
 
-                    room._game.__dict__.update(vars(pickle.loads(data)))
-                    
+                    room._game.__dict__.update(vars(pickle.loads(data[:size])))
+
                     for client in room._clients:
                         if (client != clientSocket):
                             client.send(b"game-" + struct.pack('!i', size))
                             client.send(data)
-                            
+
                     data = data[size:]
                 elif (data == b"disconnect"):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
                     
+                    data = data[len(b"disconnect"):]
+                    
                     pass
-        
+                elif (data.startswith(b"chosenContract-")):
+                    size = struct.unpack('!i', data[len(b"chosenContract-"):len(b"chosenContract-") + 4])[0]
+
+                    data = data[len(b"chosenContract-") + 4:]
+                    
+                    while (len(data) < size):
+                        if (self._closed):
+                            return
+                    
+                        try:
+                            data += clientSocket.recv(1024)
+                        except:
+                            pass
+
+                    self._contract = pickle.loads(data[:size])
+
+                    data = data[size:]
+                    
+                    room._chosenContract = True
+
         del self._clientRooms[clientSocket]
         del self._rooms[playerNumber][roomId]
         del self._gameRooms[room._game]
@@ -155,12 +185,21 @@ class Server:
                 threading.Thread(target = self.handleClient, args = (clientSocket, clientAddress)).start()
             except:
                 pass
-        
+
     def chooseContract(self, game):
         self._contract = None
         currentTime = datetime.now()
 
+        if (self._closed):
+            return self._contract
+
+        playerNumber, roomId = self._gameRooms[game]
+        room = self._rooms[playerNumber][roomId]
+        room._clients[game._currentPlayer].send(b"chooseContract")
+        room._chosenContract = False
+
         while (not self._closed
+               and not room._chosenContract
                and (self._contract == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
             time.sleep(0.01)
@@ -181,7 +220,7 @@ class Server:
         if (self._calledKing == None):
             self._calledKing = Family.Family(random.randrange(4))
 
-        return self._dog
+        return self._calledKing
 
     def doDog(self, game):
         self._dog = None

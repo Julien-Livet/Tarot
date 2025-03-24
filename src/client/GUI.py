@@ -289,7 +289,7 @@ class GUI(QObject):
         self._timer.start()
         
         self._centerTimer = QTimer(self._window)
-        self._centerTimer.setInterval(500)
+        self._centerTimer.setInterval(1500)
         self._centerTimer.setSingleShot(True)
         self._centerTimer.timeout.connect(self.centerWindow)
         self._centerTimer.start()

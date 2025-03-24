@@ -130,6 +130,7 @@ class GameData:
         self._cards = []
         self._firstRound = True
         self._centerCards = []
+        self._firstPlayer = random.randrange(self._playerNumber)
         for i in range(0, 4):
             for j in range(1, 11):
                 self._cards.append(Card.Card(familyCard = FamilyCard.FamilyCard(family = Family.Family(i), value = j)))
@@ -419,6 +420,7 @@ class Game(GameData):
         for i in range(0, self._playerNumber):
             p = (self._firstPlayer + i) % self._playerNumber
             self._currentPlayer = p
+
             self._state = GameState.ChooseContract
             contract = self._server.chooseContract(self)
             if (contract):
@@ -430,7 +432,7 @@ class Game(GameData):
             QtTest.QTest.qWait(1000)
 
             self._gameState = GameState.End
- 
+
             return
 
         self._players[self._taker]._attackTeam = True
