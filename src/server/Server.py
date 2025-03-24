@@ -112,13 +112,13 @@ class Server:
 
             if (data):
                 if (data.startswith(b"game-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game-", self._closed)
 
                     room._game.__dict__.update(vars(obj))
 
                     for client in room._clients:
                         if (client != clientSocket):
-                            common.sendDataMessage(client, b"game", data)
+                            common.sendDataMessage(client, b"game-", data)
                 elif (data.startswith(b"disconnect")):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
@@ -127,13 +127,13 @@ class Server:
                     
                     pass
                 elif (data.startswith(b"chosenContract-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract-", self._closed)
 
                     self._contract = obj
                     
                     room._chosenContract = True
                 elif (data.startswith(b"calledKing-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing-", self._closed)
 
                     self._calledKing = obj
 
