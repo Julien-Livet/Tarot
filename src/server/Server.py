@@ -129,8 +129,6 @@ class Server:
                                 client.send(data)
                             except TimeoutError:
                                 pass
-
-                    data = data[size:]
                 elif (data.startswith(b"disconnect")):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
@@ -142,16 +140,12 @@ class Server:
                     ok, data, obj = common.receiveDataMessage(clientSocket, b"chosenContract", self._closed)
 
                     self._contract = obj
-
-                    data = data[size:]
                     
                     room._chosenContract = True
                 elif (data.startswith(b"calledKing-")):
                     ok, data, obj = common.receiveDataMessage(clientSocket, b"calledKing", self._closed)
 
                     self._calledKing = obj
-
-                    data = data[size:]
 
         del self._clientRooms[clientSocket]
         del self._rooms[playerNumber][roomId]

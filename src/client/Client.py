@@ -52,8 +52,6 @@ class Client:
                         self._gameData._players[self._id]._name = self._gui._lineEdit.text()
                         self._gameData._players[self._id]._avatar = self._gui._avatar
                         self._gameData._players[self._id]._isHuman = self._isHuman
-
-                    data = data[size:]
                 elif (data.startswith(b"connect-")):
                     self._id = size = struct.unpack('!i', data[len(b"connect-"):len(b"connect-") + 4])[0]
 
