@@ -5,7 +5,7 @@ import struct
 import threading
 
 class Client:
-    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost', port = 12345):
+    def __init__(self, gui, playerNumber, isHuman = True, host = 'localhost', port = 1234):
         assert(3 <= playerNumber and playerNumber <= 5)
 
         self._gui = gui

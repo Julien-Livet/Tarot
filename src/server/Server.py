@@ -18,7 +18,7 @@ class Room:
         self._started = False
 
 class Server:
-    def __init__(self, host = 'localhost', port = 12345):
+    def __init__(self, host = 'localhost', port = 1234):
         self._closed = True
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.bind((host, port))

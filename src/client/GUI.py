@@ -282,39 +282,36 @@ class GUI(QObject):
         horizontalLayout.addLayout(verticalLayout)
 
         self._window.setLayout(horizontalLayout)
+        self._window.show()
 
         self._timer = QTimer(self._window)
         self._timer.setInterval(10)
         self._timer.timeout.connect(self.monitor)
         self._timer.start()
         
-        self._centerTimer = QTimer(self._window)
-        self._centerTimer.setInterval(1500)
-        self._centerTimer.setSingleShot(True)
-        self._centerTimer.timeout.connect(self.centerWindow)
-        self._centerTimer.start()
+        self._centeredWindow = False
         
         return False
-
-    def centerWindow(self):
-        self._window.show()
-        
-        screen_geometry = QApplication.desktop().availableGeometry()
-        screen_width = screen_geometry.width()
-        screen_height = screen_geometry.height()
-
-        window_width = self._window.width()
-        window_height = self._window.height()
-
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
-
-        self._window.move(x, y)
 
     def ok(self):
         self._ok = True
 
     def monitor(self):
+        if (not self._centeredWindow and self._window.height() > 200):
+            screen_geometry = QApplication.desktop().availableGeometry()
+            screen_width = screen_geometry.width()
+            screen_height = screen_geometry.height()
+
+            window_width = self._window.width()
+            window_height = self._window.height()
+
+            x = (screen_width - window_width) // 2
+            y = (screen_height - window_height) // 2
+            
+            if (self._window.x() - x or self._window.y() - y):
+                self._window.move(x, y)
+                self._centeredWindow = True
+    
         if (not self._client or not self._client._gameData):
             return
 
