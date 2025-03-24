@@ -54,7 +54,7 @@ class Server:
 
             try:
                 data += clientSocket.recv(1024)
-            except:
+            except TimeoutError:
                 pass
                 
             if (data and data.startswith(b"room-")):
@@ -99,7 +99,7 @@ class Server:
                 clientSocket.send(b"game-" + struct.pack('!i', len(d)))
                 clientSocket.send(d)
                 send = False
-            except:
+            except TimeoutError:
                 pass
         
         clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
@@ -116,7 +116,7 @@ class Server:
         while (room._game._gameState != Game.GameState.End):
             try:
                 data += clientSocket.recv(1024)
-            except:
+            except TimeoutError:
                 pass
                 
             if (self._closed):
@@ -134,15 +134,18 @@ class Server:
 
                         try:
                             data += clientSocket.recv(1024)
-                        except:
+                        except TimeoutError:
                             pass
 
                     room._game.__dict__.update(vars(pickle.loads(data[:size])))
 
                     for client in room._clients:
                         if (client != clientSocket):
-                            client.send(b"game-" + struct.pack('!i', size))
-                            client.send(data)
+                            try:
+                                client.send(b"game-" + struct.pack('!i', size))
+                                client.send(data)
+                            except TimeoutError:
+                                pass
 
                     data = data[size:]
                 elif (data.startswith(b"disconnect")):
@@ -163,7 +166,7 @@ class Server:
                     
                         try:
                             data += clientSocket.recv(1024)
-                        except:
+                        except TimeoutError:
                             pass
 
                     self._contract = pickle.loads(data[:size])
@@ -171,6 +174,23 @@ class Server:
                     data = data[size:]
                     
                     room._chosenContract = True
+                elif (data.startswith(b"calledKing-")):
+                    size = struct.unpack('!i', data[len(b"calledKing-"):len(b"calledKing-") + 4])[0]
+
+                    data = data[len(b"calledKing-") + 4:]
+                    
+                    while (len(data) < size):
+                        if (self._closed):
+                            return
+                    
+                        try:
+                            data += clientSocket.recv(1024)
+                        except TimeoutError:
+                            pass
+
+                    self._calledKing = pickle.loads(data[:size])
+
+                    data = data[size:]
 
         del self._clientRooms[clientSocket]
         del self._rooms[playerNumber][roomId]
@@ -183,7 +203,9 @@ class Server:
                 clientSocket.settimeout(5)
 
                 threading.Thread(target = self.handleClient, args = (clientSocket, clientAddress)).start()
-            except:
+            except TimeoutError:
+                pass
+            except OSError:
                 pass
 
     def chooseContract(self, game):
@@ -211,6 +233,10 @@ class Server:
         self._calledKing = None
         currentTime = datetime.now()
 
+        playerNumber, roomId = self._gameRooms[game]
+        room = self._rooms[playerNumber][roomId]
+        room._clients[game._currentPlayer].send(b"callKing")
+        
         while (not self._closed
                and (self._calledKing == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
@@ -225,7 +251,12 @@ class Server:
     def doDog(self, game):
         self._dog = None
         currentTime = datetime.now()
-
+        
+        playerNumber, roomId = self._gameRooms[game]
+        room = self._rooms[playerNumber][roomId]
+        room._clients[game._currentPlayer].send(b"doDog")
+        #TODO: ajouter des données pour faire le chien
+        
         while (not self._closed
                and (self._dog == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
@@ -233,7 +264,7 @@ class Server:
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._dog == None):
-            player = self._game._players[self._game._currentPlayer]
+            player = room._game._players[self._game._currentPlayer]
             enabledCards = player.enabledCards(self._game._centerCards, self._game._firstRound, self._game._calledKing, True)
             
             cards = []

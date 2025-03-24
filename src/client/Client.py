@@ -39,7 +39,7 @@ class Client:
         while (not self._closed):
             try:
                 data += self._socket.recv(1024)
-            except:
+            except TimeoutError:
                 pass
 
             if (data):
@@ -51,7 +51,7 @@ class Client:
                     while (len(data) < size):
                         try:
                             data += self._socket.recv(1024)
-                        except:
+                        except TimeoutError:
                             pass
 
                     self._gameData = pickle.loads(data[:size])
@@ -77,7 +77,7 @@ class Client:
                             self._socket.send(b"game-" + struct.pack('!i', len(d)))
                             self._socket.send(d)
                             send = False
-                        except:
+                        except TimeoutError:
                             pass
                     
                     data = data[len(b"connect-") + 4:]
@@ -92,9 +92,24 @@ class Client:
                             self._socket.send(b"chosenContract-" + struct.pack('!i', len(d)))
                             self._socket.send(d)
                             send = False
-                        except:
+                        except TimeoutError:
                             pass
 
                     data = data[len(b"chooseContract"):]
+                elif (data.startswith(b"callKing")):
+                    calledKing = self._gameData._players[self._id].callKing(self._gui)
+
+                    send = True
+                    
+                    while (send):     
+                        try:
+                            d = pickle.dumps(calledKing)
+                            self._socket.send(b"calledKing-" + struct.pack('!i', len(d)))
+                            self._socket.send(d)
+                            send = False
+                        except TimeoutError:
+                            pass
+
+                    data = data[len(b"callKing"):]
                 elif (data == b"play"):
                     pass

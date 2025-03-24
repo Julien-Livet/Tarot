@@ -8,7 +8,14 @@ import random
 
 class Player:
     def __init__(self):
-        self._name = "Player" + str(random.randrange(100))
+        names = ["Paul", "Cathy", "Hector", "Samuel", "Nicolas", "Anne",
+                 "Hermine", "Marie", "Joseph", "Marion", "Julien",
+                 "Benjamin", "Claire", "François", "Laurence",
+                 "Claude", "Jean", "Laure", "Faustine", "Sophie",
+                 "Camille", "Arnaud", "Geoffrey", "Aurélie",
+                 "Laura", "Pierre", "Simon"]
+
+        self._name = names[random.randrange(len(names))]
         self._avatar = None
         self._connected = True
         self._idle = False
@@ -21,50 +28,50 @@ class Player:
                       Family.Family.Diamond: False,
                       Family.Family.Club: False,
                       Family.Family.Spade: False}
-        
+
     def isHuman(self):
         return self._isHuman
-    
+
     def points(self) -> int:
         points = 0
-        
+
         points += common.pointsForCards(self._folds)
 
         return points
-                
+
     def folds(self) -> list:
         return self._folds
-        
+
     def cards(self) -> list:
         return self._cards
-        
+
     def attackTeam(self) -> bool:
         return self._attackTeam
-        
+
     def defenceTeam(self) -> bool:
         return not self._attackTeam
-        
+
     def teamKnown(self) -> bool:
         return self._teamKnown
 
     def chooseContract(self, gui, contract: Contract.Contract) -> Contract:
         possibleContracts = []
-        
+
         if (contract):
             possibleContracts = [-1]
             possibleContracts += [i for i in range(int(contract) + 1, 4)]
         else:
             possibleContracts = [i for i in range(-1, 4)]
-            
+
         if (len(possibleContracts) == 0):
             return None
-        
+
         strContracts = {}
         strContracts[-1] = QCoreApplication.translate("chooseContract", "Pass")
-        
+
         for i in range(0, 4):
             strContracts[i] = str(Contract.Contract(i))
-        
+
         choices = [strContracts[i] for i in possibleContracts]
 
         if (self._isHuman):
@@ -73,12 +80,12 @@ class Player:
             gui._contractComboBox.addItems(choices)
             gui._contractComboBox.setVisible(True)
             gui._ok = False
-            
+
             while (not gui._ok):
                 QtTest.QTest.qWait(10)
-            
+
             contract = {v: k for k, v in strContracts.items()}.get(choices[gui._contractComboBox.currentIndex()])
-            
+
             gui._contractLabel.setVisible(False)
             gui._contractComboBox.setVisible(False)
 
@@ -88,7 +95,7 @@ class Player:
                 return Contract.Contract(contract)
         else:
             guessContract = None
-        
+
             oudlerCount = common.countOudlersForCards(self._cards)
             
             assets = []
