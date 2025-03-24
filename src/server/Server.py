@@ -242,7 +242,7 @@ class Server:
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._playedCard == None):
-            player = self._game._players[room._game._currentPlayer]
+            player = room._game._players[room._game._currentPlayer]
             enabledCards = player.enabledCards(room._game._centerCards, room._game._firstRound, room._game._calledKing, False)
             
             cards = []

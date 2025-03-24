@@ -60,7 +60,7 @@ class Client:
                     self._gameData._players[self._id]._isHuman = self._isHuman
 
                     common.sendDataMessage(self._socket, b"game-", self._gameData, self._closed)
-                    
+
                     data = data[len(b"connect-") + 4:]
                 elif (data.startswith(b"chooseContract")):
                     contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
