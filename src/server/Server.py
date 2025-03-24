@@ -24,7 +24,7 @@ class Server:
         self._socket.bind((host, port))
         self._socket.listen(1)
         self._closed = False
-        self._socket.settimeout(1)
+        self._socket.settimeout(5)
         self._rooms  = {3: {}, 4: {}, 5: {}}
         self._clientRooms = {}
         self._gameRooms = {}
@@ -180,7 +180,7 @@ class Server:
         while (not self._closed):
             try:
                 clientSocket, clientAddress = self._socket.accept()
-                clientSocket.settimeout(1)
+                clientSocket.settimeout(5)
 
                 threading.Thread(target = self.handleClient, args = (clientSocket, clientAddress)).start()
             except:
@@ -202,7 +202,7 @@ class Server:
                and not room._chosenContract
                and (self._contract == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
-            time.sleep(0.01)
+            time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
 
         return self._contract
@@ -214,7 +214,7 @@ class Server:
         while (not self._closed
                and (self._calledKing == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
-            time.sleep(0.01)
+            time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
 
         if (self._calledKing == None):
@@ -229,7 +229,7 @@ class Server:
         while (not self._closed
                and (self._dog == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
-            time.sleep(0.01)
+            time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._dog == None):
@@ -258,7 +258,7 @@ class Server:
         while (not self._closed
                and (self._playedCard == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
-            time.sleep(0.01)
+            time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
             
         if (self._playedCard == None):

@@ -285,10 +285,10 @@ class GUI(QObject):
         self._window.show()
 
         self._timer = QTimer(self._window)
-        self._timer.setInterval(10)
+        self._timer.setInterval(100)
         self._timer.timeout.connect(self.monitor)
         self._timer.start()
-        
+
         self._centeredWindow = False
         
         return False

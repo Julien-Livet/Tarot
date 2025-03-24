@@ -13,7 +13,7 @@ class Client:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.connect((host, port))
         self._closed = False
-        self._socket.settimeout(1)
+        self._socket.settimeout(5)
         self._gameData = None
         self._playerNumber = playerNumber
         self._id = None
