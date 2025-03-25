@@ -2,6 +2,8 @@ from common import Card
 from common import Contract
 from common import Family
 from common import common
+import os
+from PIL import Image
 from PyQt5.QtCore import QCoreApplication
 from PyQt5 import QtTest
 import random
@@ -16,7 +18,7 @@ class Player:
                  "Laura", "Pierre", "Simon"]
 
         self._name = names[random.randrange(len(names))]
-        self._avatar = None
+        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
         self._connected = True
         self._idle = False
         self._folds = []

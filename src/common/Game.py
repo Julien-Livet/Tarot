@@ -336,7 +336,7 @@ class GameData:
         
             draw = ImageDraw.Draw(tableImage)
         
-            font = ImageFont.truetype("DejaVuSans.ttf", 20)
+            font = ImageFont.truetype("DejaVuSans.ttf", 14)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
@@ -349,6 +349,20 @@ class GameData:
             
             x = positions[j][0]
             y = positions[j][1]
+
+            img = common.intRoundImage(self._players[i]._avatar)
+            size = (32, 32)
+
+            if (not img):
+                img = Image.new('RGBA', size)
+            
+            img = img.resize(size)
+            img = img.rotate(angles[j], expand = True)
+            
+            image = Image.new('RGBA', (tableImage.width, tableImage.height))
+            image.paste(img, (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j])) - img.width / 2),
+                              int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j])) - img.height / 2)))
+            tableImage = Image.alpha_composite(tableImage, image)
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(textImage, (int(x - gui._globalRatio * 80 * math.sin(math.radians(angles[j])) - textImage.width / 2),

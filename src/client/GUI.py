@@ -9,6 +9,7 @@ from PIL import Image
 from PyQt5.QtCore import QCoreApplication, QObject, Qt, QRectF, QTimer
 from PyQt5.QtGui import QKeySequence, QIcon, QPixmap, QPolygonF, QTransform
 from PyQt5.QtWidgets import QApplication, QButtonGroup, QComboBox, QDialog, QFileDialog, QHBoxLayout, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QPushButton, QRadioButton, QShortcut
+import random
 from server import Server
 import struct
 import threading
@@ -50,8 +51,8 @@ class GUI(QObject):
         self._cardSize = (0, 0)
         self._overCardRatio = 1 / 3
         self._client = None
-        self._avatar = None
-        self._avatarFilename = ""
+        self._avatarFilename = os.path.dirname(__file__) + "/../../images/avatar.png"
+        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
         self._init = False
         self._localServer = None
         self._localClients = []
@@ -195,13 +196,22 @@ class GUI(QObject):
             return True
 
         host = "localhost"
+        port = 12345
 
         if (self._localRadioButton.isChecked()):
-            self._localServer = Server.Server()
+            launched = False
+        
+            while (not launched):
+                try:
+                    self._localServer = Server.Server(port = port)
+                    launched = True
+                except OSError:
+                    port = random.randrange(1024, 49151)
+            
             threading.Thread(target = self._localServer.acceptConnections).start()
             
             for i in range(1, self._playerNumber):
-                self._localClients.append(Client.Client(self, self._playerNumber, False, host))
+                self._localClients.append(Client.Client(self, self._playerNumber, False, host, port))
                 self._localClients[-1]._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
         else:
             #TODO: put a valid server address
@@ -216,7 +226,7 @@ class GUI(QObject):
 
         self._cardSize = (int(56 * self._globalRatio), int(109 * self._globalRatio))
 
-        self._client = Client.Client(self, self._playerNumber, True, host)
+        self._client = Client.Client(self, self._playerNumber, True, host, port)
         self._client._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
 
         self._window = Window(self)

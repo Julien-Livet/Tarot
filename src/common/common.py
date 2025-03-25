@@ -3,9 +3,11 @@ from common import Card
 from common import Family
 from common import FamilyCard
 from common import Head
+import copy
+import math
 import os
 import pickle
-from PIL import Image
+from PIL import Image, ImageDraw
 import struct
 import sys
 
@@ -124,7 +126,22 @@ def sendDataMessage(socket, message, obj, closed):
             return
             
         try:
-            d = pickle.dumps(obj)
+            d = None
+            
+            while (not d):
+                if (closed):
+                    return
+
+                try:
+                    d = pickle.dumps(obj)
+                except OSError:
+                    pass
+                except AttributeError:
+                    pass
+                except ValueError:
+                    pass
+                except SyntaxError:
+                    pass
             socket.send(message + struct.pack('!i', len(d)))
             socket.send(d)
             send = False
@@ -153,3 +170,40 @@ def receiveDataMessage(socket, data, message, closed):
     data = data[size:]
 
     return (True, data, obj)    
+
+def extRoundImage(image, color = (0, 0, 0, 255)):
+    radius = int(math.sqrt(image.width ** 2 + image.height ** 2))
+    img = Image.new('RGBA', (radius, radius))
+
+    draw = ImageDraw.Draw(img)
+    
+    draw.ellipse([0, 0, radius, radius], fill = color, outline = color)
+
+    i = Image.new('RGBA', (radius, radius))
+    i.paste(image, ((radius - image.width) // 2,
+                    (radius - image.height) // 2))
+    img = Image.alpha_composite(img, i)    
+
+    return img
+
+def intRoundImage(image, color = (0, 0, 0, 255)):
+    radius = min(image.width, image.height)
+    mask = Image.new('L', (image.width, image.height), color = 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse([(image.width - radius) // 2, (image.height - radius) // 2,
+                  radius, radius], fill = 255, outline = 255)
+
+    imgTmp = copy.deepcopy(image)
+    imgTmp.putalpha(mask)
+    
+    img = Image.new('RGBA', (image.width, image.height))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([(image.width - radius) // 2, (image.height - radius) // 2,
+                  radius, radius], fill = color, outline = color)
+    return img
+    i = Image.new('RGBA', (image.width, image.height))
+    i.paste(imgTmp, ((image.width - radius) // 2,
+                     (image.height - radius) // 2))
+    img = Image.alpha_composite(img, i)    
+
+    return img
