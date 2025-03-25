@@ -120,28 +120,29 @@ def sortCards(cards: list) -> list:
 
 def sendDataMessage(socket, message, obj, closed):
     send = True
-                    
+     
+    d = None
+    
+    while (not d):
+        if (closed):
+            return
+
+        try:
+            d = pickle.dumps(obj)
+        except OSError:
+            pass
+        except AttributeError:
+            pass
+        except ValueError:
+            pass
+        except SyntaxError:
+            pass
+
     while (send):     
         if (closed):
             return
             
         try:
-            d = None
-            
-            while (not d):
-                if (closed):
-                    return
-
-                try:
-                    d = pickle.dumps(obj)
-                except OSError:
-                    pass
-                except AttributeError:
-                    pass
-                except ValueError:
-                    pass
-                except SyntaxError:
-                    pass
             socket.send(message + struct.pack('!i', len(d)))
             socket.send(d)
             send = False
@@ -200,7 +201,7 @@ def intRoundImage(image, color = (0, 0, 0, 255)):
     draw = ImageDraw.Draw(img)
     draw.ellipse([(image.width - radius) // 2, (image.height - radius) // 2,
                   radius, radius], fill = color, outline = color)
-    return img
+
     i = Image.new('RGBA', (image.width, image.height))
     i.paste(imgTmp, ((image.width - radius) // 2,
                      (image.height - radius) // 2))

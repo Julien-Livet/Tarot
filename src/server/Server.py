@@ -32,11 +32,11 @@ class Server:
 
     def __del__(self):
         self.disconnect()
-        
+
     def disconnect(self):
         if (not self._closed):
             self._socket.close()
-        
+
         self._closed = True
 
     def handleClient(self, clientSocket, clientAddress):
@@ -45,7 +45,7 @@ class Server:
         init = True
 
         roomId = -1
-            
+
         data = b""
             
         while (init):

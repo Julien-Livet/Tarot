@@ -8,6 +8,7 @@ from common import Player
 from common import common
 from enum import Enum
 import math
+import os
 from PIL import Image, ImageDraw, ImageFont
 from PyQt5.QtCore import QCoreApplication
 from PyQt5 import QtTest
@@ -326,13 +327,8 @@ class GameData:
 
         for j in range(0, self._playerNumber):
             i = (bottomPlayer + j) % self._playerNumber
-        
-            text = "?"
-            
-            if (self._players[i].teamKnown()):
-                text = QCoreApplication.translate("tableImage", "Attack") if self._players[i].attackTeam() else QCoreApplication.translate("tableImage", "Defence")
-            
-            text += " - " + self._players[i]._name
+
+            text = self._players[i]._name
         
             draw = ImageDraw.Draw(tableImage)
         
@@ -358,17 +354,52 @@ class GameData:
             
             img = img.resize(size)
             img = img.rotate(angles[j], expand = True)
-            
+
+            avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j])) - img.width / 2),
+                            int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j])) - img.height / 2))
+
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(img, (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j])) - img.width / 2),
-                              int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j])) - img.height / 2)))
+            image.paste(img, avatarCenter)
             tableImage = Image.alpha_composite(tableImage, image)
+
+            if (self._players[i].teamKnown()):
+                img = Image.open(os.path.dirname(__file__) + "/../../images/defence.png")
+
+                if (self._players[i].attackTeam()):
+                    if (i == self._taker):
+                        img = Image.open(os.path.dirname(__file__) + "/../../images/swords.png")
+                    else:
+                        img = Image.open(os.path.dirname(__file__) + "/../../images/sword.png")
+
+                img = common.intRoundImage(img, (255, 255, 255, 255))
+
+                size = (16, 16)
+                img.resize(size)
+
+                image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                image.paste(img, (avatarCenter[0] + 16 - img.width // 2,
+                                  avatarCenter[0] - 16 - img.height // 2))
+                tableImage = Image.alpha_composite(tableImage, image)
+
+            if (i == self._taker and self._calledKing):
+                img = Image.open(os.path.dirname(__file__) + "/../../images/"
+                                 + str(self._calledKing).lower() + ".png")
+
+                img = common.intRoundImage(img, (255, 255, 255, 255))
+
+                size = (16, 16)
+                img.resize(size)
+
+                image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                image.paste(img, (avatarCenter[0] + 16 - img.width // 2,
+                                  avatarCenter[0] + 16 - img.height // 2))
+                tableImage = Image.alpha_composite(tableImage, image)
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
             image.paste(textImage, (int(x - gui._globalRatio * 80 * math.sin(math.radians(angles[j])) - textImage.width / 2),
                                     int(y - gui._globalRatio * 80 * math.cos(math.radians(angles[j])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
-            
+
             enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
 
             playerCardsImage = common.imageForCards(self._players[i]._cards,
