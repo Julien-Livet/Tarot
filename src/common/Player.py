@@ -18,7 +18,9 @@ class Player:
                  "Laura", "Pierre", "Simon", "Fabrice", "Lionel",
                  "Kelly", "Emmanuel", "Gustave", "Henri",
                  "Thérèse", "Patrice", "Jacques", "Delphine",
-                 "Vincent", "Thomas"]
+                 "Vincent", "Thomas", "Philippe", "Isabelle",
+                 "Teddy", "Sylvie", "Sylvain", "Thibault",
+                 "Marine", "Céline", "Michel"]
 
         self._name = names[random.randrange(len(names))]
         self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
