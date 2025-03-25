@@ -11,16 +11,20 @@ import random
 class Player:
     def __init__(self):
         names = ["Paul", "Cathy", "Hector", "Samuel", "Nicolas", "Anne",
-                 "Hermine", "Marie", "Joseph", "Marion", "Julien",
-                 "Benjamin", "Claire", "François", "Laurence",
-                 "Claude", "Jean", "Laure", "Faustine", "Sophie",
-                 "Camille", "Arnaud", "Geoffrey", "Aurélie",
-                 "Laura", "Pierre", "Simon", "Fabrice", "Lionel",
-                 "Kelly", "Emmanuel", "Gustave", "Henri",
-                 "Thérèse", "Patrice", "Jacques", "Delphine",
-                 "Vincent", "Thomas", "Philippe", "Isabelle",
-                 "Teddy", "Sylvie", "Sylvain", "Thibault",
-                 "Marine", "Céline", "Michel"]
+                 "Hermine", "Marie", "Joseph", "Marion", "Julien", "Olivier",
+                 "Benjamin", "Claire", "François", "Laurence", "Louis",
+                 "Claude", "Jean", "Laure", "Faustine", "Sophie", "Marc",
+                 "Camille", "Arnaud", "Geoffrey", "Aurélie", "Charlotte",
+                 "Laura", "Pierre", "Simon", "Fabrice", "Lionel", "Luc",
+                 "Kelly", "Emmanuel", "Gustave", "Henri", "Nicole", "Brice",
+                 "Thérèse", "Patrice", "Jacques", "Delphine", "Flore",
+                 "Vincent", "Thomas", "Philippe", "Isabelle", "Florence",
+                 "Teddy", "Sylvie", "Sylvain", "Thibault", "Nicolas", "Émilie",
+                 "Marine", "Céline", "Michel", "Alice", "Matthieu", "Pauline",
+                 "Bob", "Corinne", "Aline", 'Hélène", "David", "Aude", "Audrey",
+                 "Georges", "Martin", "Charles", "Cécile", "Étienne", "Émile"
+                 "André", "Marcel", "Yves", "Agathe", "Ernest", "Jeanne",
+                 "Robert"]
 
         self._name = names[random.randrange(len(names))]
         self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
@@ -616,27 +620,25 @@ class Player:
                 
                         if (len(playedFamilies[c.familyCard().family()])):
                             bestCard = playedFamilies[c.familyCard().family()][-1].value()
-                    
-                        if (self._game._players[p].attackTeam()):
-                            if (self._attackTeam):
-                                if (choices[0].startswith("asset-")):
-                                    selectedCard = -1
-                                else:    
-                                    selectedCard = 0
-                            else:
+                
+                        if (choices[0].startswith("asset-")):
+                            selectedCard = -1
+
+                            if (choices[index] == "asset-1"):
+                                index -= 1
+
+                            try:
+                                selectedCard = choices[index]
+                                selectedCard = index
+                            except:
+                                pass
+                        else:
+                            if (self._game._players[p].attackTeam()):
                                 if (len(families[c.familyCard().family()])
                                     and families[c.familyCard().family()][-1].value() >= bestCard - 1):
                                     selectedCard = 0
                                 else:
                                     selectedCard = -1
-                        else:
-                            if (not self._attackTeam):
-                                if (choices[0].startswith("asset-")):
-                                    selectedCard = -1
-                                else:    
-                                    selectedCard = 0
-                            else:
-                                selectedCard = -1
                     else: #elif (c.isAsset()):
                         bestAsset = 22
                         
