@@ -1042,9 +1042,10 @@ class Player:
                                     cardForFamily = True
                                     break
                         
+                            if (not cardForFamily):
+                                self._cuts[firstCard.familyCard().family()] = True
+                        
                             if (self._cards[i].familyCard().family() != firstCard.familyCard().family()):
-                                if (not len(handAssets)):
-                                    self._cuts[self._cards[i].familyCard().family()] = True
                                 if (cardForFamily or len(handAssets)):
                                     add = False
             
