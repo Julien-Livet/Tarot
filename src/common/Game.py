@@ -351,10 +351,10 @@ class GameData:
             
             if (i == self._currentPlayer):
                 draw = ImageDraw.Draw(image)
-                draw.arc([[avatarCenter[0] - img.width // 2,
-                           avatarCenter[1] - img.height // 2,
-                           avatarCenter[0] + img.width // 2,
-                           avatarCenter[1] + img.height // 2]],
+                draw.arc((avatarCenter[0] - img.width // 2,
+                          avatarCenter[1] - img.height // 2,
+                          avatarCenter[0] + img.width // 2,
+                          avatarCenter[1] + img.height // 2),
                           start = math.radians(-self._remainingTime / 30 * 360 + -90),
                           end = math.radians(-90),
                           fill = "green", width = 2)

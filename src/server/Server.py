@@ -56,7 +56,7 @@ class Server:
                 data += clientSocket.recv(1024)
             except TimeoutError:
                 pass
-            print("server-data", data)
+            print("server-data", data[:16])
             if (data and data.startswith(b"room-")):
                 playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
             
@@ -82,7 +82,7 @@ class Server:
                 init = False
                 
                 data = data[len(b"room-") + 4:]
-                
+
         gameData = Game.GameData(3)
         for key, value in vars(room._game).items():
             if (key != "_server"):
@@ -113,7 +113,7 @@ class Server:
                 
             if (self._closed):
                 return
-            print("server-data", data)
+            print("server-data", data[:16])
             if (data):
                 if (data.startswith(b"game-")):
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game-", self._closed)
@@ -169,6 +169,16 @@ class Server:
         room._clients[game._currentPlayer].send(b"chooseContract")
         room._chosenContract = False
 
+        from common import Game
+
+        gameData = Game.GameData(3)
+        for key, value in vars(room._game).items():
+            if (key != "_server"):
+                setattr(gameData, key, value)
+
+        for client in room._clients:
+            common.sendDataMessage(client, b"game-", gameData, self._closed)
+
         while (not self._closed
                and not room._chosenContract
                and (self._contract == None
@@ -185,7 +195,17 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].send(b"callKing")
-        
+
+        from common import Game
+
+        gameData = Game.GameData(3)
+        for key, value in vars(room._game).items():
+            if (key != "_server"):
+                setattr(gameData, key, value)
+
+        for client in room._clients:
+            common.sendDataMessage(client, b"game-", gameData, self._closed)
+
         while (not self._closed
                and (self._calledKing == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
@@ -205,7 +225,17 @@ class Server:
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].send(b"doDog")
         #TODO: ajouter des données pour faire le chien
-        
+
+        from common import Game
+
+        gameData = Game.GameData(3)
+        for key, value in vars(room._game).items():
+            if (key != "_server"):
+                setattr(gameData, key, value)
+
+        for client in room._clients:
+            common.sendDataMessage(client, b"game-", gameData, self._closed)
+
         while (not self._closed
                and (self._dog == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
@@ -238,13 +268,23 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].send(b"playCard")
-        
+
+        from common import Game
+
+        gameData = Game.GameData(3)
+        for key, value in vars(room._game).items():
+            if (key != "_server"):
+                setattr(gameData, key, value)
+
+        for client in room._clients:
+            common.sendDataMessage(client, b"game-", gameData, self._closed)
+
         while (not self._closed
                and (self._playedCard == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
             time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
-            
+
         if (self._playedCard == None):
             player = room._game._players[room._game._currentPlayer]
             enabledCards = player.enabledCards(room._game._centerCards, room._game._firstRound, room._game._calledKing, False)
