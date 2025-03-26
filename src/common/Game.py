@@ -345,9 +345,19 @@ class GameData:
                             int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(img, (avatarCenter[0] - img.height // 2,
+            image.paste(img, (avatarCenter[0] - img.width // 2,
                               avatarCenter[1] - img.height // 2))
             tableImage = Image.alpha_composite(tableImage, image)
+            
+            if (i == self._currentPlayer):
+                draw = ImageDraw.Draw(image)
+                draw.arc([[avatarCenter[0] - img.width // 2,
+                           avatarCenter[1] - img.height // 2,
+                           avatarCenter[0] + img.width // 2,
+                           avatarCenter[1] + img.height // 2]],
+                          start = math.radians(-90),
+                          end = math.radians(-self._remainingTime / 30 * 360 + -90),
+                          fill = "green", width = 2)
 
             transform = QTransform()
             transform.translate(tableImage.width / 2, tableImage.height / 2)
