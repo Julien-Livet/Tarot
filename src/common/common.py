@@ -10,6 +10,7 @@ import pickle
 from PIL import Image, ImageDraw
 import struct
 import sys
+import time
 
 def maximumPoints():
     cards = []
