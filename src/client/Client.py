@@ -13,7 +13,7 @@ class Client:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.connect((host, port))
         self._closed = False
-        self._socket.settimeout(5)
+        self._socket.settimeout(1)
         self._gameData = None
         self._playerNumber = playerNumber
         self._id = None
@@ -63,11 +63,12 @@ class Client:
 
                     data = data[len(b"connect-") + 4:]
                 elif (data.startswith(b"chooseContract")):
-                    contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
+                    if (self._id):
+                        contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
 
-                    common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed)
+                        common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed)
 
-                    data = data[len(b"chooseContract"):]
+                        data = data[len(b"chooseContract"):]
                 elif (data.startswith(b"callKing")):
                     calledKing = self._gameData._players[self._id].callKing(self._gui)
 

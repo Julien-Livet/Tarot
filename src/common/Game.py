@@ -11,6 +11,7 @@ import math
 import os
 from PIL import Image, ImageDraw, ImageFont
 from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtGui import QTransform
 from PyQt5 import QtTest
 import random
 from server import Server
@@ -340,15 +341,20 @@ class GameData:
             img = img.resize(size)
             img = img.rotate(angles[j], expand = True)
 
-            avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j])) - img.width / 2),
-                            int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j])) - img.height / 2))
+            avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j]))),
+                            int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(img, avatarCenter)
+            image.paste(img, (avatarCenter[0] - img.height // 2,
+                              avatarCenter[1] - img.height // 2))
             tableImage = Image.alpha_composite(tableImage, image)
 
+            transform = QTransform()
+            transform.translate(tableImage.width / 2, tableImage.height / 2)
+            transform.rotate(-angles[j])
+
             if (self._players[i].teamKnown()):
-                img = Image.open(os.path.dirname(__file__) + "/../../images/defence.png")
+                img = Image.open(os.path.dirname(__file__) + "/../../images/shield.png")
 
                 if (self._players[i].attackTeam()):
                     if (i == self._taker):
@@ -356,28 +362,34 @@ class GameData:
                     else:
                         img = Image.open(os.path.dirname(__file__) + "/../../images/sword.png")
 
-                img = common.intRoundImage(img, (255, 255, 255, 255))
+                img = common.extRoundImage(img, (255, 255, 255, 255))
 
                 size = (16, 16)
-                img.resize(size)
+                img = img.resize(size)
+                img = img.rotate(angles[j], expand = True)
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
-                image.paste(img, (avatarCenter[0] + 16 * math.cos(math.radians(angles[j])) - img.width // 2,
-                                  avatarCenter[1] - 16 * math.sin(math.radians(angles[j])) - img.height // 2))
+                p = transform.map(16,
+                                  radius - gui._globalRatio * 120 - 16)
+                image.paste(img, (int(p[0] - img.width // 2),
+                                  int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
 
             if (i == self._taker and self._calledKing):
                 img = Image.open(os.path.dirname(__file__) + "/../../images/"
-                                 + str(self._calledKing).lower() + ".png")
+                                 + self._calledKing.imageName() + ".png")
 
-                img = common.intRoundImage(img, (255, 255, 255, 255))
+                img = common.extRoundImage(img, (255, 255, 255, 255))
 
                 size = (16, 16)
-                img.resize(size)
+                img = img.resize(size)
+                img = img.rotate(angles[j], expand = True)
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
-                image.paste(img, (avatarCenter[0] + 16 * math.cos(math.radians(angles[j])) - img.width // 2,
-                                  avatarCenter[1] + 16 * math.sin(math.radians(angles[j])) - img.height // 2))
+                p = transform.map(16,
+                                  radius - gui._globalRatio * 120 + 16)
+                image.paste(img, (int(p[0] - img.width // 2),
+                                  int(p[1] - img.height // 2)))
                 tableImage = Image.alpha_composite(tableImage, image)
 
             text = self._players[i]._name
@@ -412,8 +424,10 @@ class GameData:
             textImage = textImage.rotate(angles[j], expand = True)
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (int(avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2),
-                                    int(avatarCenter[1] + 16 * math.sin(math.radians(angles[j])) - textImage.height // 2)))
+            p = transform.map(-16,
+                              radius - gui._globalRatio * 120 + 16)
+            image.paste(textImage, (int(p[0] - textImage.width // 2),
+                                    int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
 
             text = "H" if self._players[i].isHuman() else "B" #Human or Bot
@@ -430,8 +444,10 @@ class GameData:
             textImage = textImage.rotate(angles[j], expand = True)
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (int(avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2),
-                                    int(avatarCenter[1] - 16 * math.sin(math.radians(angles[j])) - textImage.height // 2)))
+            p = transform.map(-16,
+                              radius - gui._globalRatio * 120 - 16)
+            image.paste(textImage, (int(p[0] - textImage.width // 2),
+                                    int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)

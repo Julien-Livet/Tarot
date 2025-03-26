@@ -10,6 +10,18 @@ class Family(Enum):
     def __int__(self) -> int:
         return self.value
     
+    def imageName(self) -> str:
+        if (self.value == 0):
+            return "heart"
+        elif (self.value == 1):
+            return "diamond"
+        elif (self.value == 2):
+            return "club"
+        elif (self.value == 3):
+            return "spade"
+        else:
+            return ""
+
     def name(self) -> str:
         if (self.value == 0):
             return QCoreApplication.translate("name", "Heart")

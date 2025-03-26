@@ -24,7 +24,7 @@ class Server:
         self._socket.bind((host, port))
         self._socket.listen(1)
         self._closed = False
-        self._socket.settimeout(5)
+        self._socket.settimeout(1)
         self._rooms  = {3: {}, 4: {}, 5: {}}
         self._clientRooms = {}
         self._gameRooms = {}
@@ -145,7 +145,7 @@ class Server:
         while (not self._closed):
             try:
                 clientSocket, clientAddress = self._socket.accept()
-                clientSocket.settimeout(5)
+                clientSocket.settimeout(1)
 
                 threading.Thread(target = self.handleClient, args = (clientSocket, clientAddress)).start()
             except TimeoutError:
