@@ -145,9 +145,9 @@ def sendDataMessage(socket, message, obj, closed):
             
         try:
             socket.send(message + struct.pack('!i', len(d)))
-            time.sleep(0.5)
+            time.sleep(0.1)
             socket.send(d)
-            time.sleep(0.5)
+            time.sleep(0.1)
             send = False
         except TimeoutError:
             pass

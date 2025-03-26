@@ -90,11 +90,11 @@ class Server:
 
         common.sendDataMessage(clientSocket, b"game-", gameData, self._closed)
 
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
         
-        time.sleep(0.5)
+        time.sleep(0.1)
         
         if (not room._started and len(room._clients) == playerNumber):
             room._started = True
