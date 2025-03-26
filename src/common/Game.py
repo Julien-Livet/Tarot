@@ -412,8 +412,8 @@ class GameData:
             textImage = textImage.rotate(angles[j], expand = True)
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - img.width // 2,
-                                    avatarCenter[0] + 16 * math.sin(math.radians(angles[j])) - img.height // 2))
+            image.paste(textImage, (avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2,
+                                    avatarCenter[0] + 16 * math.sin(math.radians(angles[j])) - textImage.height // 2))
             tableImage = Image.alpha_composite(tableImage, image)
 
             text = "H" if self._players[i].isHumane() else "B" #Human or Bot
@@ -428,10 +428,10 @@ class GameData:
             textImage = textImage.resize((int(textImage.width * gui._globalRatio),
                                           int(textImage.height * gui._globalRatio)))
             textImage = textImage.rotate(angles[j], expand = True)
-            
+
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - img.width // 2,
-                                    avatarCenter[0] - 16 * math.sin(math.radians(angles[j])) - img.height // 2))
+            image.paste(textImage, (avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2,
+                                    avatarCenter[0] - 16 * math.sin(math.radians(angles[j])) - textImage.height // 2))
             tableImage = Image.alpha_composite(tableImage, image)
             
             enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
