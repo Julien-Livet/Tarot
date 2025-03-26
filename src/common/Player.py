@@ -26,7 +26,19 @@ class Player:
                  "André", "Marcel", "Yves", "Agathe", "Ernest", "Jeanne",
                  "Robert", "Arthur", "Bruno", "Antoine", "Emma", "Adèle",
                  "Élise", "Fred", "Magalie", "Benoît", "Denis", "Zélie",
-                 "Mathilde"]
+                 "Mathilde", "Anaëlle", "Pascal", "Chloé", "Sandra", "Caroline",
+                 "Georges", "William", "Félix", "Gabriel", "Lucie", "Bernard",
+                 "Céleste", "Cédric", "Prune", "Elsa", "Côme", "Margot",
+                 "Diane", "Gisèle", "Marthe", "Vianney", "Gaspard", "Manon",
+                 "Élodie", "Nelly", "Virginie", "Salomé", "Brianne", "Clément",
+                 "Clémence", "Quentin", "Bastien", "Maxime", "Lucile",
+                 "Baptiste", "Maurice", "Odette", "Hugues", "Huguette",
+                 "Johann", "Jonathan", "Tanguy", "Estelle", "Romuald",
+                 "Romain", "Myriam", "Alexis", "Adrien", "Christian",
+                 "Christine", "Agnès", "Annie", "Guy", "Gaëlle", "Maël",
+                 "Claudine", "Line", "Armand", "Albane", "Éric", "Julie",
+                 "Stéphane", "Kévin", "Yann", "Raphaël", "Loïc", "Anthony",
+                 "Jimmy"]
 
         self._name = names[random.randrange(len(names))]
         self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
