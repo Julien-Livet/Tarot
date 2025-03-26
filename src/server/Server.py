@@ -56,7 +56,7 @@ class Server:
                 data += clientSocket.recv(1024)
             except TimeoutError:
                 pass
-                
+            print("server-data", data)
             if (data and data.startswith(b"room-")):
                 playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
             
@@ -109,7 +109,7 @@ class Server:
                 
             if (self._closed):
                 return
-
+            print("server-data", data)
             if (data):
                 if (data.startswith(b"game-")):
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game-", self._closed)

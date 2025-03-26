@@ -21,7 +21,7 @@ class Player:
                  "Vincent", "Thomas", "Philippe", "Isabelle", "Florence",
                  "Teddy", "Sylvie", "Sylvain", "Thibault", "Nicolas", "Émilie",
                  "Marine", "Céline", "Michel", "Alice", "Matthieu", "Pauline",
-                 "Bob", "Corinne", "Aline", 'Hélène", "David", "Aude", "Audrey",
+                 "Bob", "Corinne", "Aline", "Hélène", "David", "Aude", "Audrey",
                  "Georges", "Martin", "Charles", "Cécile", "Étienne", "Émile"
                  "André", "Marcel", "Yves", "Agathe", "Ernest", "Jeanne",
                  "Robert", "Arthur", "Bruno", "Antoine", "Emma", "Adèle",

@@ -41,7 +41,7 @@ class Client:
                 data += self._socket.recv(1024)
             except TimeoutError:
                 pass
-
+            print("client-data", data)
             if (data):
                 if (data.startswith(b"game-")):
                     ok, data, obj = common.receiveDataMessage(self._socket, data, b"game-", self._closed)

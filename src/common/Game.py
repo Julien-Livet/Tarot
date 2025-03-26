@@ -363,7 +363,7 @@ class GameData:
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 image.paste(img, (avatarCenter[0] + 16 * math.cos(math.radians(angles[j])) - img.width // 2,
-                                  avatarCenter[0] - 16 * math.sin(math.radians(angles[j])) - img.height // 2))
+                                  avatarCenter[1] - 16 * math.sin(math.radians(angles[j])) - img.height // 2))
                 tableImage = Image.alpha_composite(tableImage, image)
 
             if (i == self._taker and self._calledKing):
@@ -377,7 +377,7 @@ class GameData:
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 image.paste(img, (avatarCenter[0] + 16 * math.cos(math.radians(angles[j])) - img.width // 2,
-                                  avatarCenter[0] + 16 * math.sin(math.radians(angles[j])) - img.height // 2))
+                                  avatarCenter[1] + 16 * math.sin(math.radians(angles[j])) - img.height // 2))
                 tableImage = Image.alpha_composite(tableImage, image)
 
             text = self._players[i]._name
@@ -398,9 +398,9 @@ class GameData:
                                     int(y - gui._globalRatio * 80 * math.cos(math.radians(angles[j])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
-            text = str(self._players[i]._points)
+            text = str(self._players[i].points())
             draw = ImageDraw.Draw(tableImage)
-            font = ImageFont.truetype("DejaVuSans.ttf", 10)
+            font = ImageFont.truetype("DejaVuSans.ttf", 14)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
@@ -412,13 +412,13 @@ class GameData:
             textImage = textImage.rotate(angles[j], expand = True)
             
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2,
-                                    avatarCenter[0] + 16 * math.sin(math.radians(angles[j])) - textImage.height // 2))
+            image.paste(textImage, (int(avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2),
+                                    int(avatarCenter[1] + 16 * math.sin(math.radians(angles[j])) - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
 
-            text = "H" if self._players[i].isHumane() else "B" #Human or Bot
+            text = "H" if self._players[i].isHuman() else "B" #Human or Bot
             draw = ImageDraw.Draw(tableImage)
-            font = ImageFont.truetype("DejaVuSans.ttf", 10)
+            font = ImageFont.truetype("DejaVuSans.ttf", 14)
             bbox = draw.textbbox((0, 0), text, font = font, spacing = 0, align = "center")
             w = bbox[2] - bbox[0]
             h = int(1.5 * (bbox[3] - bbox[1]))
@@ -430,8 +430,8 @@ class GameData:
             textImage = textImage.rotate(angles[j], expand = True)
 
             image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(textImage, (avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2,
-                                    avatarCenter[0] - 16 * math.sin(math.radians(angles[j])) - textImage.height // 2))
+            image.paste(textImage, (int(avatarCenter[0] - 16 * math.cos(math.radians(angles[j])) - textImage.width // 2),
+                                    int(avatarCenter[1] - 16 * math.sin(math.radians(angles[j])) - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
             enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
