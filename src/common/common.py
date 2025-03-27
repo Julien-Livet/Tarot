@@ -138,6 +138,9 @@ def sendDataMessage(socket, message, obj, closed):
             pass
         except SyntaxError:
             pass
+            
+        if (not d):
+            print("dumps-fail")
 
     while (send):     
         if (closed):
@@ -145,12 +148,13 @@ def sendDataMessage(socket, message, obj, closed):
             
         try:
             socket.send(message + struct.pack('!i', len(d)))
-            time.sleep(0.1)
             socket.send(d)
-            time.sleep(0.1)
             send = False
         except TimeoutError:
             pass
+            
+        if (send):
+            print("send-fail")
 
 def receiveDataMessage(socket, data, message, closed):
     if (not data.startswith(message)):

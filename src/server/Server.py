@@ -24,7 +24,7 @@ class Server:
         self._socket.bind((host, port))
         self._socket.listen(1)
         self._closed = False
-        self._socket.settimeout(1)
+        #self._socket.settimeout(1)
         self._rooms  = {3: {}, 4: {}, 5: {}}
         self._clientRooms = {}
         self._gameRooms = {}
@@ -56,7 +56,7 @@ class Server:
                 data += clientSocket.recv(1024)
             except TimeoutError:
                 pass
-            print("server-data", data[:16])
+            #print("server-data", data[:16])
             if (data and data.startswith(b"room-")):
                 playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
             
@@ -90,11 +90,8 @@ class Server:
 
         common.sendDataMessage(clientSocket, b"game-", gameData, self._closed)
 
-        time.sleep(0.1)
-
+        print("server-connect")
         clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
-        
-        time.sleep(0.1)
         
         if (not room._started and len(room._clients) == playerNumber):
             room._started = True
@@ -113,7 +110,7 @@ class Server:
                 
             if (self._closed):
                 return
-            print("server-data", data[:16])
+            #print("server-data", data[:16])
             if (data):
                 if (data.startswith(b"game-")):
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game-", self._closed)
@@ -131,6 +128,7 @@ class Server:
                     
                     pass
                 elif (data.startswith(b"chosenContract-")):
+                    print("server-chosenContract")
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract-", self._closed)
 
                     self._contract = obj
@@ -149,7 +147,7 @@ class Server:
         while (not self._closed):
             try:
                 clientSocket, clientAddress = self._socket.accept()
-                clientSocket.settimeout(1)
+                #clientSocket.settimeout(1)
 
                 threading.Thread(target = self.handleClient, args = (clientSocket, clientAddress)).start()
             except TimeoutError:
@@ -163,7 +161,7 @@ class Server:
 
         if (self._closed):
             return self._contract
-
+            
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].send(b"chooseContract")
@@ -178,14 +176,14 @@ class Server:
 
         for client in room._clients:
             common.sendDataMessage(client, b"game-", gameData, self._closed)
-
+        print("server-chooseContract")
         while (not self._closed
                and not room._chosenContract
                and (self._contract == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
             time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
-
+        print("server-chooseContract-end")
         return self._contract
 
     def callKing(self, game):

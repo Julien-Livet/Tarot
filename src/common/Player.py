@@ -392,10 +392,19 @@ class Player:
                             if (add):
                                 self._cuts[firstCard.familyCard().family()] = True
                         else:
-                            if (self._cards[i].familyCard().family() != firstCard.familyCard().family()
-                                and len(handAssets)):
-                                add = False
-                                self._cuts[self._cards[i].familyCard().family()] = True
+                            cardForFamily = False
+                            
+                            for card in self._cards:
+                                if (card.isFamilyCard() and card.familyCard().family() == firstCard.familyCard().family()):
+                                    cardForFamily = True
+                                    break
+
+                            if (not cardForFamily):
+                                self._cuts[firstCard.familyCard().family()] = True
+                        
+                            if (self._cards[i].familyCard().family() != firstCard.familyCard().family()):
+                                if (cardForFamily or len(handAssets)):
+                                    add = False
             
             enabledCards.append(add)
 

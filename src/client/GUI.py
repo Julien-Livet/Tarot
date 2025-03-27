@@ -56,10 +56,14 @@ class GUI(QObject):
         self._init = False
         self._localServer = None
         self._localClients = []
+        self._timer = None
 
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
 
     def __del__(self):
+        if (self._timer):
+            self._timer.stop()
+    
         if (self._localServer):
             self._localServer.disconnect()
             
