@@ -640,28 +640,30 @@ class Player:
                 if (self._game._players[p].teamKnown()):
                     if (c.isFamilyCard()):
                         bestCard = 15
-                
+
                         if (len(playedFamilies[c.familyCard().family()])):
                             bestCard = playedFamilies[c.familyCard().family()][-1].value()
-                
-                        if (choices[0].startswith("asset-")):
-                            selectedCard = -1
-
-                            if (choices[index] == "asset-1"):
-                                index -= 1
-
-                            try:
-                                selectedCard = choices[index]
-                                selectedCard = index
-                            except:
-                                pass
-                        else:
-                            if (self._game._players[p].attackTeam()):
+                    
+                        if (self._game._players[p].attackTeam()):
+                            if (self._attackTeam):
+                                if (choices[0].startswith("asset-")):
+                                    selectedCard = -1
+                                else:    
+                                    selectedCard = 0
+                            else:
                                 if (len(families[c.familyCard().family()])
                                     and families[c.familyCard().family()][-1].value() >= bestCard - 1):
                                     selectedCard = 0
                                 else:
                                     selectedCard = -1
+                        else:
+                            if (not self._attackTeam):
+                                if (choices[0].startswith("asset-")):
+                                    selectedCard = -1
+                                else:    
+                                    selectedCard = 0
+                            else:
+                                selectedCard = -1
                     else: #elif (c.isAsset()):
                         bestAsset = 22
                         
