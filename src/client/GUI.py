@@ -22,9 +22,6 @@ class Window(QDialog):
         self._gui = gui
 
     def closeEvent(self, event):
-        if (self._gui._client):
-            self._gui._client.disconnect()
-
         if (self._gui._init):
             with open(iniFilename, 'w') as file:
                 file.write(self._gui._lineEdit.text() + "\n")
@@ -169,16 +166,17 @@ class GUI(QObject):
             if (avatarFilename):
                 self._avatarFilename = avatarFilename
                 
-                pixmap = QPixmap(avatarFilename)
-                self._avatar = Image.open(avatarFilename)
-
-                pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
-                
-                self._avatarButton.setIcon(QIcon(pixmap))
-                
             self._localRadioButton.setChecked(local == "True")
             self._onlineRadioButton.setChecked(local == "False")
         
+        if (self._avatarFilename):
+            pixmap = QPixmap(avatarFilename)
+            self._avatar = Image.open(self._avatarFilename)
+
+            pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
+            
+            self._avatarButton.setIcon(QIcon(pixmap))
+                
         hBoxLayout = QHBoxLayout()
         hBoxLayout.addWidget(self._lineEdit)
         hBoxLayout.addWidget(self._avatarButton)
