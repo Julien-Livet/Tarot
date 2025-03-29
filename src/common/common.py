@@ -119,7 +119,7 @@ def sortCards(cards: list) -> list:
         
     return cards
 
-def sendDataMessage(socket, message, obj, closed):
+def sendDataMessage(socket, message, obj, closed, source):
     send = True
      
     d = None
@@ -147,8 +147,10 @@ def sendDataMessage(socket, message, obj, closed):
             return
             
         try:
-            socket.send(message + struct.pack('!i', len(d)))
-            socket.send(d)
+            socket.sendall(message + struct.pack('!i', len(d)))
+            print(source + str(socket.fileno()) + ">", message + struct.pack('!i', len(d)))
+            socket.sendall(d)
+            print(source + str(socket.fileno()) + ">", d)
             send = False
         except TimeoutError:
             pass
@@ -156,7 +158,7 @@ def sendDataMessage(socket, message, obj, closed):
         if (send):
             print("send-fail")
 
-def receiveDataMessage(socket, data, message, closed):
+def receiveDataMessage(socket, data, message, closed, source):
     if (not data.startswith(message)):
         return (False, data, None)
 
@@ -167,13 +169,23 @@ def receiveDataMessage(socket, data, message, closed):
     while (len(data) < size):
         if (closed):
             return
-    
+
         try:
             data += socket.recv(1024)
+            print(source + str(socket.fileno()) + "<", data)
         except TimeoutError:
             pass
 
-    obj = pickle.loads(data[:size])
+    obj = None
+    
+    while (not obj):
+        if (closed):
+            return
+
+        try:
+            obj = pickle.loads(data[:size])
+        except pickle.UnpicklingError:
+            pass
 
     data = data[size:]
 

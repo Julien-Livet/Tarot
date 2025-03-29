@@ -26,7 +26,7 @@ class Client:
  
     def disconnect(self):
         if (not self._closed):
-            self._socket.send(b"disconnect")
+            self._socket.sendall(b"disconnect")
         
         self._closed = True
         
@@ -42,55 +42,55 @@ class Client:
             except TimeoutError:
                 pass
             
-            if (data):
-                print("client-data", data[:16])
-                
-                if (data.startswith(b"game-")):
-                    print("client-game")
-                    ok, data, obj = common.receiveDataMessage(self._socket, data, b"game-", self._closed)
+            if (data):      
+                print("client" + str(self._socket.fileno()) + "<", data)          
+                if (data.startswith(b"gameData-")):
+                    ok, data, obj = common.receiveDataMessage(self._socket, data, b"gameData-", self._closed, "client")
 
                     self._gameData = obj
 
                     if (self._id):
                         self._gameData._players[self._id]._name = self._gui._lineEdit.text()
                         self._gameData._players[self._id]._avatar = self._gui._avatar
-                        self._gameData._players[self._id]._isHuman = self._isHuman
+                        self._gameData._players[self._id]._isHuman = self._isHuman      
+                if (data.startswith(b"player-")):
+                    ok, data, obj = common.receiveDataMessage(self._socket, data, b"player-", self._closed, "client")
+
+                    id, player = obj
+
+                    self._gameData._players[id] = player
+                if (data.startswith(b"currentPlayer-")):
+                    ok, data, obj = common.receiveDataMessage(self._socket, data, b"currentPlayer-", self._closed, "client")
+
+                    self._gameData._currentPlayer = obj
                 elif (data.startswith(b"connect-")):
-                    print("client-connect")
                     self._id = size = struct.unpack('!i', data[len(b"connect-"):len(b"connect-") + 4])[0]
 
                     self._gameData._players[self._id]._name = self._gui._lineEdit.text()
                     self._gameData._players[self._id]._avatar = self._gui._avatar
                     self._gameData._players[self._id]._isHuman = self._isHuman
 
-                    common.sendDataMessage(self._socket, b"game-", self._gameData, self._closed)
+                    common.sendDataMessage(self._socket, b"player-", (self._id, self._gameData._players[self._id]), self._closed, "client")
 
                     data = data[len(b"connect-") + 4:]
                 elif (data.startswith(b"chooseContract")):
-                    print("client-chooseContract")
                     if (self._id):
-                        print("ok1", self._gameData._players[self._id].isHuman())
                         contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
 
-                        common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed)
-                        print("ok2")
+                        common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed, "client")
+
                         data = data[len(b"chooseContract"):]
                 elif (data.startswith(b"callKing")):
-                    print("client-callKing")
                     calledKing = self._gameData._players[self._id].callKing(self._gui)
 
-                    common.sendDataMessage(self._socket, b"calledKing-", calledKing, self._closed)
+                    common.sendDataMessage(self._socket, b"calledKing-", calledKing, self._closed, "client")
 
                     data = data[len(b"callKing"):]
                 elif (data.startswith(b"doDog")):
-                    print("client-doDog")
                     #TODO: ...
 
                     data = data[len(b"doDog"):]
                 elif (data.startswith(b"play")):
-                    print("client-play")
                     #TODO: ...
 
                     data = data[len(b"play"):]
-                else:
-                    print("client", data[:16])

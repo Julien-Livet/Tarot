@@ -56,7 +56,9 @@ class Server:
                 data += clientSocket.recv(1024)
             except TimeoutError:
                 pass
-            #print("server-data", data[:16])
+
+            print("server" + str(clientSocket.fileno()) + "<", data)
+                
             if (data and data.startswith(b"room-")):
                 playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
             
@@ -88,11 +90,11 @@ class Server:
             if (key != "_server"):
                 setattr(gameData, key, value)
 
-        common.sendDataMessage(clientSocket, b"game-", gameData, self._closed)
+        common.sendDataMessage(clientSocket, b"gameData-", gameData, self._closed, "server")
 
-        print("server-connect")
-        clientSocket.send(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
-        
+        clientSocket.sendall(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
+        print("server>", b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
+
         if (not room._started and len(room._clients) == playerNumber):
             room._started = True
 
@@ -110,16 +112,19 @@ class Server:
                 
             if (self._closed):
                 return
-            #print("server-data", data[:16])
-            if (data):
-                if (data.startswith(b"game-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"game-", self._closed)
 
-                    room._game.__dict__.update(vars(obj))
+            if (data):
+                print("server" + str(clientSocket.fileno()) + "<", data)
+                if (data.startswith(b"player-")):
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"player-", self._closed, "server")
+
+                    id, player = obj
+
+                    room._game._players[id] = player
 
                     for client in room._clients:
                         if (client != clientSocket):
-                            common.sendDataMessage(client, b"game-", obj, self._closed)
+                            common.sendDataMessage(client, b"player-", obj, self._closed, "server")
                 elif (data.startswith(b"disconnect")):
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
@@ -128,14 +133,13 @@ class Server:
                     
                     pass
                 elif (data.startswith(b"chosenContract-")):
-                    print("server-chosenContract")
-                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract-", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract-", self._closed, "server")
 
                     self._contract = obj
                     
                     room._chosenContract = True
                 elif (data.startswith(b"calledKing-")):
-                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing-", self._closed)
+                    ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing-", self._closed, "server")
 
                     self._calledKing = obj
 
@@ -164,26 +168,21 @@ class Server:
             
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
-        room._clients[game._currentPlayer].send(b"chooseContract")
-        room._chosenContract = False
-
-        from common import Game
-
-        gameData = Game.GameData(3)
-        for key, value in vars(room._game).items():
-            if (key != "_server"):
-                setattr(gameData, key, value)
 
         for client in room._clients:
-            common.sendDataMessage(client, b"game-", gameData, self._closed)
-        print("server-chooseContract")
+            common.sendDataMessage(client, b"currentPlayer-", room._game._currentPlayer, self._closed, "server")
+
+        room._clients[game._currentPlayer].sendall(b"chooseContract")
+        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"chooseContract")
+        room._chosenContract = False
+
         while (not self._closed
                and not room._chosenContract
                and (self._contract == None
                     or (datetime.now() - currentTime).total_seconds() <= timeout)):
             time.sleep(0.1)
             game._remainingTime = max(0, (datetime.now() - currentTime).total_seconds())
-        print("server-chooseContract-end")
+
         return self._contract
 
     def callKing(self, game):
@@ -192,17 +191,8 @@ class Server:
 
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
-        room._clients[game._currentPlayer].send(b"callKing")
-
-        from common import Game
-
-        gameData = Game.GameData(3)
-        for key, value in vars(room._game).items():
-            if (key != "_server"):
-                setattr(gameData, key, value)
-
-        for client in room._clients:
-            common.sendDataMessage(client, b"game-", gameData, self._closed)
+        room._clients[game._currentPlayer].sendall(b"callKing")
+        print("server>", b"callKing")
 
         while (not self._closed
                and (self._calledKing == None
@@ -221,18 +211,9 @@ class Server:
         
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
-        room._clients[game._currentPlayer].send(b"doDog")
+        room._clients[game._currentPlayer].sendall(b"doDog")
+        print("server>", b"doDog")
         #TODO: ajouter des données pour faire le chien
-
-        from common import Game
-
-        gameData = Game.GameData(3)
-        for key, value in vars(room._game).items():
-            if (key != "_server"):
-                setattr(gameData, key, value)
-
-        for client in room._clients:
-            common.sendDataMessage(client, b"game-", gameData, self._closed)
 
         while (not self._closed
                and (self._dog == None
@@ -265,17 +246,8 @@ class Server:
 
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
-        room._clients[game._currentPlayer].send(b"playCard")
-
-        from common import Game
-
-        gameData = Game.GameData(3)
-        for key, value in vars(room._game).items():
-            if (key != "_server"):
-                setattr(gameData, key, value)
-
-        for client in room._clients:
-            common.sendDataMessage(client, b"game-", gameData, self._closed)
+        room._clients[game._currentPlayer].sendall(b"playCard")
+        print("server>", b"playCard")
 
         while (not self._closed
                and (self._playedCard == None

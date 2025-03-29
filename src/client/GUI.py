@@ -58,9 +58,6 @@ class GUI(QObject):
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
 
     def __del__(self):
-        if (self._timer):
-            self._timer.stop()
-    
         if (self._localServer):
             self._localServer.disconnect()
             
@@ -119,7 +116,7 @@ class GUI(QObject):
             self._avatarFilename = filename
         
             pixmap = QPixmap(self._avatarFilename)
-            self._avatar = Image.open(self._avatarFilename).resize(64, 64)
+            self._avatar = Image.open(self._avatarFilename).resize((64, 64))
 
             pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
             
@@ -171,11 +168,12 @@ class GUI(QObject):
         
         if (self._avatarFilename):
             pixmap = QPixmap(avatarFilename)
-            self._avatar = Image.open(self._avatarFilename)
+            self._avatar = Image.open(self._avatarFilename).resize((64, 64))
 
             pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
             
             self._avatarButton.setIcon(QIcon(pixmap))
+        self._avatar = None #TODO: to remove
                 
         hBoxLayout = QHBoxLayout()
         hBoxLayout.addWidget(self._lineEdit)

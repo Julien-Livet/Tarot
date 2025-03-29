@@ -332,25 +332,26 @@ class GameData:
             x = positions[j][0]
             y = positions[j][1]
 
-            img = common.intRoundImage(self._players[i]._avatar)
-            size = (32, 32)
+            if (self._players[i]._avatar):
+                img = common.intRoundImage(self._players[i]._avatar)
+                size = (32, 32)
 
-            if (not img):
-                img = Image.new('RGBA', size)
-            
-            img = img.resize(size)
-            img = img.rotate(angles[j], expand = True)
+                if (not img):
+                    img = Image.new('RGBA', size)
+                
+                img = img.resize(size)
+                img = img.rotate(angles[j], expand = True)
 
-            avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j]))),
-                            int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
+                avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j]))),
+                                int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
 
-            image = Image.new('RGBA', (tableImage.width, tableImage.height))
-            image.paste(img, (avatarCenter[0] - img.width // 2,
-                              avatarCenter[1] - img.height // 2))
-            tableImage = Image.alpha_composite(tableImage, image)
-            
+                image = Image.new('RGBA', (tableImage.width, tableImage.height))
+                image.paste(img, (avatarCenter[0] - img.width // 2,
+                                  avatarCenter[1] - img.height // 2))
+                tableImage = Image.alpha_composite(tableImage, image)
+
             if (i == self._currentPlayer):
-                draw = ImageDraw.Draw(image)
+                draw = ImageDraw.Draw(tableImage)
                 draw.arc((avatarCenter[0] - img.width // 2,
                           avatarCenter[1] - img.height // 2,
                           avatarCenter[0] + img.width // 2,

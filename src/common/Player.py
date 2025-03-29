@@ -22,7 +22,7 @@ class Player:
                  "Teddy", "Sylvie", "Sylvain", "Thibault", "Nicolas", "Émilie",
                  "Marine", "Céline", "Michel", "Alice", "Matthieu", "Pauline",
                  "Bob", "Corinne", "Aline", "Hélène", "David", "Aude", "Audrey",
-                 "Georges", "Martin", "Charles", "Cécile", "Étienne", "Émile"
+                 "Georges", "Martin", "Charles", "Cécile", "Étienne", "Émile",
                  "André", "Marcel", "Yves", "Agathe", "Ernest", "Jeanne",
                  "Robert", "Arthur", "Bruno", "Antoine", "Emma", "Adèle",
                  "Élise", "Fred", "Magalie", "Benoît", "Denis", "Zélie",
@@ -41,7 +41,7 @@ class Player:
                  "Jimmy"]
 
         self._name = names[random.randrange(len(names))]
-        self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
+        self._avatar = None#Image.open(os.path.dirname(__file__) + "/../../images/avatar.png").resize(64, 64)
         self._connected = True
         self._idle = False
         self._folds = []
