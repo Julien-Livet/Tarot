@@ -93,7 +93,7 @@ class Server:
         common.sendDataMessage(clientSocket, b"gameData-", gameData, self._closed, "server")
 
         clientSocket.sendall(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
-        print("server>", b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
+        print("server" + str(clientSocket.fileno()) + ">", b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
 
         if (not room._started and len(room._clients) == playerNumber):
             room._started = True
@@ -192,7 +192,7 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].sendall(b"callKing")
-        print("server>", b"callKing")
+        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"callKing")
 
         while (not self._closed
                and (self._calledKing == None
@@ -212,7 +212,7 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].sendall(b"doDog")
-        print("server>", b"doDog")
+        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"doDog")
         #TODO: ajouter des données pour faire le chien
 
         while (not self._closed
@@ -247,7 +247,7 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].sendall(b"playCard")
-        print("server>", b"playCard")
+        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"playCard")
 
         while (not self._closed
                and (self._playedCard == None
