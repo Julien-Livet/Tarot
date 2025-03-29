@@ -335,9 +335,10 @@ class GameData:
             avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j]))),
                             int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
 
+            size = (32, 32)
+                
             if (self._players[i]._avatar):
                 img = common.intRoundImage(self._players[i]._avatar)
-                size = (32, 32)
 
                 if (not img):
                     img = Image.new('RGBA', size)
@@ -352,10 +353,10 @@ class GameData:
 
             if (i == self._currentPlayer):
                 draw = ImageDraw.Draw(tableImage)
-                draw.arc((avatarCenter[0] - img.width // 2,
-                          avatarCenter[1] - img.height // 2,
-                          avatarCenter[0] + img.width // 2,
-                          avatarCenter[1] + img.height // 2),
+                draw.arc((avatarCenter[0] - size[0] // 2,
+                          avatarCenter[1] - size[1] // 2,
+                          avatarCenter[0] + size[0] // 2,
+                          avatarCenter[1] + size[1] // 2),
                           start = -self._remainingTime / 30 * 360 + -90,
                           end = -90,
                           fill = "green", width = 2)

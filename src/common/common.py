@@ -138,9 +138,6 @@ def sendDataMessage(socket, message, obj, closed, source):
             pass
         except SyntaxError:
             pass
-            
-        if (not d):
-            print("dumps-fail")
 
     while (send):     
         if (closed):
@@ -148,22 +145,19 @@ def sendDataMessage(socket, message, obj, closed, source):
             
         try:
             socket.sendall(message + struct.pack('!i', len(d)))
-            print(source + str(socket.fileno()) + ">", message + struct.pack('!i', len(d)))
+            #print(source + str(socket.fileno()) + ">", message + struct.pack('!i', len(d)))
             socket.sendall(d)
-            print(source + str(socket.fileno()) + ">", d)
+            #print(source + str(socket.fileno()) + ">", d)
             send = False
         except TimeoutError:
             pass
-            
-        if (send):
-            print("send-fail")
 
 def receiveDataMessage(socket, data, message, closed, source):
     if (not data.startswith(message)):
         return (False, data, None)
 
     size = struct.unpack('!i', data[len(message):len(message) + 4])[0]
-
+    #print(source + str(socket.fileno()) + "<", message, size)
     data = data[len(message) + 4:]
     
     while (len(data) < size):
@@ -172,7 +166,7 @@ def receiveDataMessage(socket, data, message, closed, source):
 
         try:
             data += socket.recv(1024)
-            print(source + str(socket.fileno()) + "<", data)
+            #print(source + str(socket.fileno()) + "<", data)
         except TimeoutError:
             pass
 

@@ -57,7 +57,7 @@ class Server:
             except TimeoutError:
                 pass
 
-            print("server" + str(clientSocket.fileno()) + "<", data)
+            #print("server" + str(clientSocket.fileno()) + "<", data)
                 
             if (data and data.startswith(b"room-")):
                 playerNumber = struct.unpack('!i', data[len(b"room-"):len(b"room-") + 4])[0]
@@ -93,7 +93,7 @@ class Server:
         common.sendDataMessage(clientSocket, b"gameData-", gameData, self._closed, "server")
 
         clientSocket.sendall(b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
-        print("server" + str(clientSocket.fileno()) + ">", b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
+        #print("server" + str(clientSocket.fileno()) + ">", b"connect-" + struct.pack('!i', room._clients.index(clientSocket)))
 
         if (not room._started and len(room._clients) == playerNumber):
             room._started = True
@@ -101,7 +101,7 @@ class Server:
             random.shuffle(room._clients)
 
             threading.Thread(target = room._game.play).start()
-        
+
         room = self._rooms[playerNumber][roomId]
 
         while (room._game._gameState != Game.GameState.End):
@@ -113,9 +113,11 @@ class Server:
             if (self._closed):
                 return
 
-            if (data):
-                print("server" + str(clientSocket.fileno()) + "<", data)
+            while (data):
+                found = False
+                #print("server" + str(clientSocket.fileno()) + "<", data)
                 if (data.startswith(b"player-")):
+                    found = True
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"player-", self._closed, "server")
 
                     id, player = obj
@@ -126,6 +128,7 @@ class Server:
                         if (client != clientSocket):
                             common.sendDataMessage(client, b"player-", obj, self._closed, "server")
                 elif (data.startswith(b"disconnect")):
+                    found = True
                     room._game._players[room._clients.index(clientSocket)]._connected = False
                     #TODO: ...
                     
@@ -133,15 +136,20 @@ class Server:
                     
                     pass
                 elif (data.startswith(b"chosenContract-")):
+                    found = True
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract-", self._closed, "server")
 
                     self._contract = obj
                     
                     room._chosenContract = True
                 elif (data.startswith(b"calledKing-")):
+                    found = True
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing-", self._closed, "server")
 
                     self._calledKing = obj
+
+                if (not found):
+                    break
 
         del self._clientRooms[clientSocket]
         del self._rooms[playerNumber][roomId]
@@ -173,7 +181,7 @@ class Server:
             common.sendDataMessage(client, b"currentPlayer-", room._game._currentPlayer, self._closed, "server")
 
         room._clients[game._currentPlayer].sendall(b"chooseContract")
-        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"chooseContract")
+        #print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"chooseContract")
         room._chosenContract = False
 
         while (not self._closed
@@ -192,7 +200,7 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].sendall(b"callKing")
-        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"callKing")
+        #print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"callKing")
 
         while (not self._closed
                and (self._calledKing == None
@@ -212,7 +220,7 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].sendall(b"doDog")
-        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"doDog")
+        #"server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"doDog")
         #TODO: ajouter des données pour faire le chien
 
         while (not self._closed
@@ -247,7 +255,7 @@ class Server:
         playerNumber, roomId = self._gameRooms[game]
         room = self._rooms[playerNumber][roomId]
         room._clients[game._currentPlayer].sendall(b"playCard")
-        print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"playCard")
+        #print("server" + str(room._clients[game._currentPlayer].fileno()) + ">", b"playCard")
 
         while (not self._closed
                and (self._playedCard == None

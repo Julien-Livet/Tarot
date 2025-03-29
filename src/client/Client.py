@@ -36,55 +36,41 @@ class Client:
     def receiveData(self):
         data = b""
 
+        messages = []
+
         while (not self._closed):
             try:
                 data += self._socket.recv(1024)
             except TimeoutError:
                 pass
             
-            if (data):      
-                print("client" + str(self._socket.fileno()) + "<", data)          
+            while (data):
+                found = False
+                #print("client" + str(self._socket.fileno()) + "<", data)          
                 if (data.startswith(b"gameData-")):
+                    found = True
                     ok, data, obj = common.receiveDataMessage(self._socket, data, b"gameData-", self._closed, "client")
-
-                    self._gameData = obj
-
-                    if (self._id):
-                        self._gameData._players[self._id]._name = self._gui._lineEdit.text()
-                        self._gameData._players[self._id]._avatar = self._gui._avatar
-                        self._gameData._players[self._id]._isHuman = self._isHuman      
-                if (data.startswith(b"player-")):
+                    messages.append(("gameData-", obj))
+                elif (data.startswith(b"player-")):
+                    found = True
                     ok, data, obj = common.receiveDataMessage(self._socket, data, b"player-", self._closed, "client")
-
-                    id, player = obj
-
-                    self._gameData._players[id] = player
-                if (data.startswith(b"currentPlayer-")):
+                    messages.append(("player-", obj))
+                elif (data.startswith(b"currentPlayer-")):
+                    found = True
                     ok, data, obj = common.receiveDataMessage(self._socket, data, b"currentPlayer-", self._closed, "client")
-
-                    self._gameData._currentPlayer = obj
+                    messages.append(("currentPlayer-", obj))
                 elif (data.startswith(b"connect-")):
-                    self._id = size = struct.unpack('!i', data[len(b"connect-"):len(b"connect-") + 4])[0]
-
-                    self._gameData._players[self._id]._name = self._gui._lineEdit.text()
-                    self._gameData._players[self._id]._avatar = self._gui._avatar
-                    self._gameData._players[self._id]._isHuman = self._isHuman
-
-                    common.sendDataMessage(self._socket, b"player-", (self._id, self._gameData._players[self._id]), self._closed, "client")
-
+                    found = True
+                    id = struct.unpack('!i', data[len(b"connect-"):len(b"connect-") + 4])[0]
+                    messages.append(("connect-", id))
                     data = data[len(b"connect-") + 4:]
                 elif (data.startswith(b"chooseContract")):
-                    if (self._id):
-                        contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
-
-                        common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed, "client")
-
-                        data = data[len(b"chooseContract"):]
+                    found = True
+                    messages.append(("chooseContract", None))
+                    data = data[len(b"chooseContract"):]
                 elif (data.startswith(b"callKing")):
-                    calledKing = self._gameData._players[self._id].callKing(self._gui)
-
-                    common.sendDataMessage(self._socket, b"calledKing-", calledKing, self._closed, "client")
-
+                    found = True
+                    messages.append(("callKing", None))
                     data = data[len(b"callKing"):]
                 elif (data.startswith(b"doDog")):
                     #TODO: ...
@@ -94,3 +80,59 @@ class Client:
                     #TODO: ...
 
                     data = data[len(b"play"):]
+                    
+                if (not found):
+                    break
+
+            newMessages = []
+
+            for m in messages:
+                process = True
+
+                if (m[0] == "gameData-"):
+                    print("client" + str(self._socket.fileno()), "gameData-")
+                    self._gameData = m[1]
+                elif (m[0] == "connect-"):
+                    if (not self._gameData):
+                        process = False
+                    else:
+                        print("client" + str(self._socket.fileno()), "connect-")
+                        self._id = m[1]
+
+                        self._gameData._players[self._id]._name = self._gui._lineEdit.text()
+                        self._gameData._players[self._id]._avatar = self._gui._avatar
+                        self._gameData._players[self._id]._isHuman = self._isHuman
+
+                        common.sendDataMessage(self._socket, b"player-", (self._id, self._gameData._players[self._id]), self._closed, "client")
+                elif (m[0] == "player-"):
+                    if (not self._gameData):
+                        process = False
+                    else:
+                        print("client" + str(self._socket.fileno()), "player-")
+                        id, player = m[1]
+                        self._gameData._players[id] = player
+                elif (m[0] == "chooseContract"):
+                    if (not self._id or not self._gameData):
+                        process = False
+                    else:
+                        contract = self._gameData._players[self._id].chooseContract(self._gui, self._gameData._contract)
+
+                        common.sendDataMessage(self._socket, b"chosenContract-", contract, self._closed, "client")
+                elif (m[0] == "callKing"):
+                    if (not self._id or not self._gameData):
+                        process = False
+                    else:
+                        calledKing = self._gameData._players[self._id].callKing(self._gui)
+
+                        common.sendDataMessage(self._socket, b"calledKing-", calledKing, self._closed, "client")
+                elif (m[0] == "currentPlayer-"):
+                    if (not self._gameData):
+                        process = False
+                    else:
+                        print("client" + str(self._socket.fileno()), "currentPlayer-")
+                        self._gameData._currentPlayer = m[1]
+
+                if (not process):
+                    newMessages.append(m)
+
+            messages = newMessages
