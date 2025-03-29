@@ -332,6 +332,9 @@ class GameData:
             x = positions[j][0]
             y = positions[j][1]
 
+            avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j]))),
+                            int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
+
             if (self._players[i]._avatar):
                 img = common.intRoundImage(self._players[i]._avatar)
                 size = (32, 32)
@@ -341,9 +344,6 @@ class GameData:
                 
                 img = img.resize(size)
                 img = img.rotate(angles[j], expand = True)
-
-                avatarCenter = (int(x - gui._globalRatio * 120 * math.sin(math.radians(angles[j]))),
-                                int(y - gui._globalRatio * 120 * math.cos(math.radians(angles[j]))))
 
                 image = Image.new('RGBA', (tableImage.width, tableImage.height))
                 image.paste(img, (avatarCenter[0] - img.width // 2,
