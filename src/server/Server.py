@@ -104,6 +104,8 @@ class Server:
 
         room = self._rooms[playerNumber][roomId]
 
+        messages = []
+
         while (room._game._gameState != Game.GameState.End):
             try:
                 data += clientSocket.recv(1024)
@@ -119,14 +121,7 @@ class Server:
                 if (data.startswith(b"player-")):
                     found = True
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"player-", self._closed, "server")
-
-                    id, player = obj
-
-                    room._game._players[id] = player
-
-                    for client in room._clients:
-                        if (client != clientSocket):
-                            common.sendDataMessage(client, b"player-", obj, self._closed, "server")
+                    messages.append(("player-", obj))
                 elif (data.startswith(b"disconnect")):
                     found = True
                     room._game._players[room._clients.index(clientSocket)]._connected = False
@@ -138,18 +133,37 @@ class Server:
                 elif (data.startswith(b"chosenContract-")):
                     found = True
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"chosenContract-", self._closed, "server")
-
-                    self._contract = obj
-                    
-                    room._chosenContract = True
+                    messages.append(("chosenContract-", obj))
                 elif (data.startswith(b"calledKing-")):
                     found = True
                     ok, data, obj = common.receiveDataMessage(clientSocket, data, b"calledKing-", self._closed, "server")
-
-                    self._calledKing = obj
+                    messages.append(("calledKing-", obj))
 
                 if (not found):
                     break
+
+            newMessages = []
+
+            for m in messages:
+                process = True
+
+                if (m[0] == "player-"):
+                    id, player = m[1]
+                    room._game._players[id] = player
+
+                    for client in room._clients:
+                        if (client != clientSocket):
+                            common.sendDataMessage(client, b"player-", obj, self._closed, "server")
+                elif (m[0] == "chosenContract-"):
+                    self._contract = m[1]
+                    room._chosenContract = True
+                elif (m[0] == "calledKing-"):
+                    self._calledKing = m[1]
+
+                if (not process):
+                    newMessages.append(m)
+
+            messages = newMessages
 
         del self._clientRooms[clientSocket]
         del self._rooms[playerNumber][roomId]

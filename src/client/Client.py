@@ -99,8 +99,10 @@ class Client:
                         print("client" + str(self._socket.fileno()), "connect-")
                         self._id = m[1]
 
-                        self._gameData._players[self._id]._name = self._gui._lineEdit.text()
-                        self._gameData._players[self._id]._avatar = self._gui._avatar
+                        if (self._isHuman):
+                            self._gameData._players[self._id]._name = self._gui._lineEdit.text()
+                            self._gameData._players[self._id]._avatar = self._gui._avatar
+                            
                         self._gameData._players[self._id]._isHuman = self._isHuman
 
                         common.sendDataMessage(self._socket, b"player-", (self._id, self._gameData._players[self._id]), self._closed, "client")
