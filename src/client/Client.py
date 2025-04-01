@@ -37,6 +37,7 @@ class Client:
 
         self._gui = gui
         self._conn = rpyc.connect(host, port, service = Service(self))
+        print(self._conn.root.hello())
         self._playerNumber = playerNumber
         self._id = None
         self._isHuman = isHuman

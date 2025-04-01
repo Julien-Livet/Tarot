@@ -27,7 +27,7 @@ class Service(rpyc.Service):
 
     def on_connect(self, conn):
         self._clients.append(conn)
-        #print(conn.root.hi())
+        print(conn.root.hi())
         print("here")
         print(conn.root.setConn(conn))
         print("there")
