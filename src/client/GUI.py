@@ -29,13 +29,15 @@ class Window(QDialog):
                 file.write(str(self._gui._localRadioButton.isChecked()) + "\n")
 
         if (self._gui._localServer):
-            self._gui._localServer.disconnect()
-
-        for client in self._gui._localClients:
-            client.disconnect()
+            self._gui._localServer.close()
 
         if (self._gui._client):
-            self._gui._client.disconnect()
+            self._gui._client.close()
+
+        for client in self._gui._localClients:
+            client.close()
+
+        self._gui._localClients = []
 
 class GUI(QObject):
     def __init__(self):
@@ -59,13 +61,15 @@ class GUI(QObject):
 
     def __del__(self):
         if (self._localServer):
-            self._localServer.disconnect()
-            
-        for client in self._localClients:
-            client.disconnect()
+            self._localServer.close()
 
         if (self._client):
-            self._client.disconnect()
+            self._client.close()
+
+        for client in self._localClients:
+            client.close()
+
+        self._localClients = []
 
     def threePlayers(self):
         self._playerNumber = 3
@@ -196,23 +200,24 @@ class GUI(QObject):
             return True
 
         host = "localhost"
-        port = 12345
+        port = 18861
 
         if (self._localRadioButton.isChecked()):
             launched = False
         
+            from rpyc.utils.server import ThreadedServer
+
             while (not launched):
                 try:
-                    self._localServer = Server.Server(port = port)
+                    self._localServer = ThreadedServer(Server.Service(), port = port)
                     launched = True
-                except OSError:
+                except ConnectionRefusedError:
                     port = random.randrange(1024, 49151)
-            
-            threading.Thread(target = self._localServer.acceptConnections).start()
-            
+
+            threading.Thread(target = self._localServer.start).start()
+
             for i in range(1, self._playerNumber):
                 self._localClients.append(Client.Client(self, self._playerNumber, False, host, port))
-                self._localClients[-1]._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
         else:
             #TODO: put a valid server address
             host = ""
@@ -227,7 +232,6 @@ class GUI(QObject):
         self._cardSize = (int(56 * self._globalRatio), int(109 * self._globalRatio))
 
         self._client = Client.Client(self, self._playerNumber, True, host, port)
-        self._client._socket.send(b"room-" + struct.pack('!i', self._playerNumber))
 
         self._window = Window(self)
         self._window.setWindowTitle(QCoreApplication.translate("play", "Tarot"))

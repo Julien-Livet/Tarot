@@ -515,7 +515,7 @@ class GameData:
         return (assets, families)
 
 class Game(GameData):
-    def __init__(self, server: Server.Server, playerNumber: int = 5):
+    def __init__(self, server: Server.Service, playerNumber: int = 5):
         super().__init__(playerNumber)
         self._server = server
 

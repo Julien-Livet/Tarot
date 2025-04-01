@@ -145,7 +145,7 @@ def sendDataMessage(socket, message, obj, closed, source):
             
         try:
             socket.sendall(message + struct.pack('!i', len(d)) + d)
-            #print(source + str(socket.fileno()) + ">", message + struct.pack('!i', len(d)) + d)
+            print(source + str(socket.fileno()) + ">", message + struct.pack('!i', len(d)) + d)
             send = False
         except TimeoutError:
             pass
