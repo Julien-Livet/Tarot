@@ -9,6 +9,7 @@ import time
 import threading
 
 timeout = 30
+port = 18861
 
 class Room:
     def __init__(self, id: int, game):
@@ -43,10 +44,6 @@ class Service(rpyc.Service):
         del Service._clientRooms[self._conn]
 
     @rpyc.exposed
-    def currentPlayer(self):
-        return Service._clientRooms[self._conn]._game._currentPlayer
-    
-    @rpyc.exposed
     def connect(self, data):
         room = Service._clientRooms[self._conn]
         i = room._clients.index(self._conn)
@@ -56,6 +53,17 @@ class Service(rpyc.Service):
         room._game._players[i]._isHuman = info[0]
         room._game._players[i]._name = info[1]
         room._game._players[i]._avatar = info[2]
+    
+    def addBots(self):
+        currentTime = datetime.now()
+        
+        while ((datetime.now() - room._currentTime).total_seconds() < 15):
+            time.sleep(0.1)
+            
+        global port
+        
+        for i in range(len(room._clients), self._playerNumber):
+            Client.Client(self, self._playerNumber, False, "localhost", port)
     
     @rpyc.exposed
     def join_room(self, playerNumber):
@@ -82,6 +90,8 @@ class Service(rpyc.Service):
             Service._clientRooms[self._conn] = room
             roomId = Service._roomCount
             Service._roomCount += 1
+            
+            threading.Thread(target = self.addBots).start()
             
         self._roomId = roomId
 
@@ -157,5 +167,4 @@ def runServer(port):
     server.start()
 
 if (__name__ == '__main__'):
-    runServer(18861)
-
+    runServer(port)

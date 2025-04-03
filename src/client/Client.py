@@ -107,3 +107,6 @@ class Client:
                 pass
             except OSError:
                 pass
+                
+            if (self._gameData._gameState == Game.GameState.End):
+                self._conn.close()
