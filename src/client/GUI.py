@@ -220,7 +220,7 @@ class GUI(QObject):
                 self._localClients.append(Client.Client(self, self._playerNumber, False, host, port))
         else:
             #TODO: put a valid server address
-            host = ""
+            host = "192.168.0.39"
 
         if (self._playerNumber == 3):
             self._globalRatio = 0.85
@@ -329,7 +329,7 @@ class GUI(QObject):
                 self._window.move(x, y)
                 self._centeredWindow = True
     
-        if (not self._client or not self._client._gameData):
+        if (self._client == None or self._client._gameData == None):
             return
 
         from common import Game
