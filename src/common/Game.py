@@ -12,9 +12,9 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import QTransform
-from PyQt5 import QtTest
 import random
 from server import Server
+import time
 
 class GameState(Enum):
     Begin = 0
@@ -143,7 +143,7 @@ class GameData:
         random.shuffle(self._cards)
         assert(len(self._cards) == 78)
         
-        self._players = [Player.Player() for i in range(0, self._playerNumber)]
+        self._players = [Player.Player(self._playerNumber, i) for i in range(0, self._playerNumber)]
         
         n = 78 // 3 // self._playerNumber
         
@@ -168,43 +168,6 @@ class GameData:
             if (len(assets) == 1 and assets[0].value() == 1):
                 self.giveHands()
 
-    def setWinner(self, cards: dict):
-        if (len(cards) == 0):
-            return (None, None)
-            
-        assets = {}
-        families = {Family.Family.Heart: {},
-                    Family.Family.Diamond: {},
-                    Family.Family.Club: {},
-                    Family.Family.Spade: {}}
-        for k, v in cards.items():
-            if v.isAsset():
-                assets[k] = v
-            else: #elif v.isFamilyCard():
-                families[v.familyCard().family()][k] = v
-        
-        if (len(assets)):
-            assets = dict(sorted(assets.items(), key = lambda item: item[1].value()))
-            
-            p, a = list(assets.items())[-1]
-            
-            if (a.value() > 0):
-                return (p, a)
-                
-        p, firstCard = list(cards.items())[0]
-        
-        if (firstCard.isAsset() and firstCard.asset().isFool()):
-            if (len(cards) > 1):
-                p, firstCard = list(cards.items())[1]
-            else:
-                return (p, firstCard)
-                
-        f = dict(sorted(families[firstCard.familyCard().family()].items(), key = lambda item: item[1].value()))
-        
-        p, c = list(f.items())[-1]
-        
-        return (p, c)
-    
     def playSet(self, cards: dict, lastSet: bool):
         assets = {}
         families = {Family.Family.Heart: {},
@@ -351,7 +314,7 @@ class GameData:
                                   avatarCenter[1] - img.height // 2))
                 tableImage = Image.alpha_composite(tableImage, image)
 
-            if (i == self._currentPlayer):
+            if (j == self._currentPlayer):
                 draw = ImageDraw.Draw(tableImage)
                 draw.arc((avatarCenter[0] - size[0] // 2,
                           avatarCenter[1] - size[1] // 2,
@@ -520,145 +483,155 @@ class Game(GameData):
         self._server = server
 
     def play(self):
-        self._firstPlayer = random.randrange(self._playerNumber)
-        
-        self._gameState = GameState.Begin
-        
-        for i in range(0, self._playerNumber):
-            p = (self._firstPlayer + i) % self._playerNumber
-            self._currentPlayer = p
+        try:
+            self._firstPlayer = random.randrange(self._playerNumber)
+            
+            self._gameState = GameState.Begin
+            
+            for i in range(0, self._playerNumber):
+                p = (self._firstPlayer + i) % self._playerNumber
+                self._currentPlayer = p
 
-            self._state = GameState.ChooseContract
-            contract = self._server.chooseContract(self)
-            if (contract):
-                self._taker = p
-                self._contract = contract
-        
-        if (not self._contract):
-            self._gameState = GameState.ShowDog
-            QtTest.QTest.qWait(1000)
+                self._state = GameState.ChooseContract
+                contract = self._server.chooseContract(self)
 
-            self._gameState = GameState.End
+                if (contract):
+                    self._taker = p
+                    self._contract = contract
+                    
+                time.sleep(1.0)
 
-            return
+            if (not self._contract):
+                self._gameState = GameState.ShowDog
+                time.sleep(2.0)
 
-        self._players[self._taker]._attackTeam = True
-        self._players[self._taker]._teamKnown = True
+                self._gameState = GameState.End
 
-        self._currentPlayer = self._taker
-        self._gameState = GameState.CallKing
+                return
 
-        if (self._playerNumber == 5):
-            self._calledKing = self._server.callKing(self)
-        else:
-            for i in range(0, len(self._players)):
-                if (i != self._taker):
-                    self._players[i]._attackTeam = False
-                    self._players[i]._teamKnown = True
+            self._players[self._taker]._attackTeam = True
+            self._players[self._taker]._teamKnown = True
 
-        kingInDog = False
+            self._currentPlayer = self._taker
+            self._gameState = GameState.CallKing
 
-        if (self._contract == Contract.Contract.Little
-            or self._contract == Contract.Contract.Guard):
-            self._gameState = GameState.ShowDog
-            QtTest.QTest.qWait(2000)
+            if (self._playerNumber == 5):
+                self._calledKing = self._server.callKing(self)
+            else:
+                for i in range(0, len(self._players)):
+                    if (i != self._taker):
+                        self._players[i]._attackTeam = False
+                        self._players[i]._teamKnown = True
 
-            for card in self._dog:
-                if (card.isFamilyCard()
-                    and card.familyCard().family() == self._calledKing
-                    and card.familyCard().value() == 14):
-                    kingInDog = True
-                    break
+            kingInDog = False
 
-        if (not kingInDog):
-            found = False
+            if (int(self._contract) == 0
+                or int(self._contract) == 1):
+                self._gameState = GameState.ShowDog
+                time.sleep(2.0)
 
-            for i in range(0, len(self._players)):
-                for card in self._players[i].cards():
+                for card in self._dog:
                     if (card.isFamilyCard()
                         and card.familyCard().family() == self._calledKing
                         and card.familyCard().value() == 14):
-                        self._players[i]._attackTeam = True
-                        found = True
+                        kingInDog = True
                         break
-                
-                if (found):
-                    break
-        else:
-            for i in range(0, len(self._players)):
-                if (i != self._taker):
-                    self._players[i]._attackTeam = False
-                    self._players[i]._teamKnown = True
 
-        if (self._contract == Contract.Contract.Little
-            or self._contract == Contract.Contract.Guard):
-            self._gameState = GameState.DoDog
-        
-            self._dog = self._server.doDog(self)
+            if (not kingInDog):
+                found = False
 
-        self._gameState = GameState.Play
-        
-        n = (78 - len(self._dog)) // self._playerNumber
-
-        for i in range(0, n):
-            cards = {}
-
-            players = [(self._firstPlayer + j) % self._playerNumber for j in range(0, self._playerNumber)]
-
-            for j in range(0, self._playerNumber):
-                self._centerCards = []
-                p = (self._firstPlayer + j) % self._playerNumber
-                self._currentPlayer = p
-                self._firstRound = (i == 0)
-                cards[p] = self._server.playCard(self)
-                self._centerCards = [x[1] for x in cards.items()]
-                
-                if (cards[p].isFamilyCard()
-                    and cards[p].familyCard().family() == self._calledKing
-                    and cards[p].familyCard().value() == 14):
-                    for player in self._players:
-                        player._teamKnown = True
+                for i in range(0, len(self._players)):
+                    for card in self._players[i].cards():
+                        if (card.isFamilyCard()
+                            and card.familyCard().family() == self._calledKing
+                            and card.familyCard().value() == 14):
+                            self._players[i]._attackTeam = True
+                            found = True
+                            break
                     
-                if (not self._players[p]._teamKnown):
-                    firstCard = None
+                    if (found):
+                        break
+            else:
+                for i in range(0, len(self._players)):
+                    if (i != self._taker):
+                        self._players[i]._attackTeam = False
+                        self._players[i]._teamKnown = True
+
+            if (self._contract == Contract.Contract.Little
+                or self._contract == Contract.Contract.Guard):
+                self._gameState = GameState.DoDog
+            
+                self._dog = self._server.doDog(self)
+
+            self._gameState = GameState.Play
+            
+            n = (78 - len(self._dog)) // self._playerNumber
+
+            for i in range(0, n):
+                cards = {}
+
+                players = [(self._firstPlayer + j) % self._playerNumber for j in range(0, self._playerNumber)]
+
+                for j in range(0, self._playerNumber):
+                    self._centerCards = []
+                    p = (self._firstPlayer + j) % self._playerNumber
+                    self._currentPlayer = p
+                    self._firstRound = (i == 0)
+                    cards[p] = self._server.playCard(self, players, cards)
+                    self._centerCards = [x[1] for x in cards.items()]
+                    
+                    if (cards[p].isFamilyCard()
+                        and cards[p].familyCard().family() == self._calledKing
+                        and cards[p].familyCard().value() == 14):
+                        for player in self._players:
+                            player._teamKnown = True
                         
-                    if (len(cards)):
-                        firstCard = list(cards.items())[0][1]
-                        
-                        if (firstCard.isAsset()
-                            and firstCard.asset().isFool()):
-                            if (len(list(cards.items())) > 1):
-                                firstCard = None
-                            else:
-                                firstCard = list(cards.items())[1][1]
-                                    
-                    if (cards[p].isAsset()):      
-                        if (firstCard and firstCard.isFamilyCard()
-                            and firstCard.familyCard().family() == self._calledKing):
+                    if (not self._players[p]._teamKnown):
+                        firstCard = None
+                            
+                        if (len(cards)):
+                            firstCard = list(cards.items())[0][1]
+                            
+                            if (firstCard.isAsset()
+                                and firstCard.asset().isFool()):
+                                if (len(list(cards.items())) > 1):
+                                    firstCard = None
+                                else:
+                                    firstCard = list(cards.items())[1][1]
+                                        
+                        if (cards[p].isAsset()):      
+                            if (firstCard and firstCard.isFamilyCard()
+                                and firstCard.familyCard().family() == self._calledKing):
+                                self._players[p]._attackTeam = False
+                                self._players[p]._teamKnown = True
+                        elif (cards[p].isFamilyCard()
+                              and firstCard == self._calledKing
+                              and cards[p].isFamilyCard() != self._calledKing):
                             self._players[p]._attackTeam = False
                             self._players[p]._teamKnown = True
-                    elif (cards[p].isFamilyCard()
-                          and firstCard == self._calledKing
-                          and cards[p].isFamilyCard() != self._calledKing):
-                        self._players[p]._attackTeam = False
-                        self._players[p]._teamKnown = True
 
-                QtTest.QTest.qWait(1000)
-            
-            self._firstPlayer = self.playSet(cards, i == n - 1)
+                    time.sleep(1.0)
+                
+                time.sleep(1.0)
+                
+                self._firstPlayer = self.playSet(cards, i == n - 1)
 
-        self._gameState = GameState.ShowDog
-        QtTest.QTest.qWait(1000)
+            self._gameState = GameState.ShowDog
+            time.sleep(1.0)
 
-        if (self._contract == Contract.Contract.GuardWithout):
-            for p in self._players:
-                if (p.defenceTeam()):
-                    p._folds += self._dog
-                    break
-        else:
-            self._players[self._taker]._folds += self._dog
+            if (self._contract == Contract.Contract.GuardWithout):
+                for p in self._players:
+                    if (p.defenceTeam()):
+                        p._folds += self._dog
+                        break
+            else:
+                self._players[self._taker]._folds += self._dog
 
-        self._dog = []
+            self._dog = []
+        except EOFError:
+            pass
+        except TimeoutError:
+            pass
         
         self._currentPlayer = None
         self._gameState = GameState.End

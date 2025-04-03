@@ -28,9 +28,6 @@ class Window(QDialog):
                 file.write(self._gui._avatarFilename + "\n")
                 file.write(str(self._gui._localRadioButton.isChecked()) + "\n")
 
-        if (self._gui._localServer):
-            self._gui._localServer.close()
-
         if (self._gui._client):
             self._gui._client.close()
 
@@ -38,6 +35,9 @@ class Window(QDialog):
             client.close()
 
         self._gui._localClients = []
+
+        if (self._gui._localServer):
+            self._gui._localServer.close()
 
 class GUI(QObject):
     def __init__(self):
@@ -60,9 +60,6 @@ class GUI(QObject):
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
 
     def __del__(self):
-        if (self._localServer):
-            self._localServer.close()
-
         if (self._client):
             self._client.close()
 
@@ -70,6 +67,9 @@ class GUI(QObject):
             client.close()
 
         self._localClients = []
+
+        if (self._localServer):
+            self._localServer.close()
 
     def threePlayers(self):
         self._playerNumber = 3
@@ -177,7 +177,6 @@ class GUI(QObject):
             pixmap = pixmap.scaled(self._avatarButton.size(), aspectRatioMode = 1)
             
             self._avatarButton.setIcon(QIcon(pixmap))
-        self._avatar = None #TODO: to remove
                 
         hBoxLayout = QHBoxLayout()
         hBoxLayout.addWidget(self._lineEdit)
@@ -209,7 +208,7 @@ class GUI(QObject):
 
             while (not launched):
                 try:
-                    self._localServer = ThreadedServer(Server.Service(), port = port)
+                    self._localServer = ThreadedServer(Server.Service, port = port)
                     launched = True
                 except ConnectionRefusedError:
                     port = random.randrange(1024, 49151)
@@ -298,13 +297,13 @@ class GUI(QObject):
         self._window.setLayout(horizontalLayout)
         self._window.show()
 
+        self._centeredWindow = False
+
         self._timer = QTimer(self._window)
         self._timer.setInterval(100)
         self._timer.timeout.connect(self.monitor)
         self._timer.start()
 
-        self._centeredWindow = False
-        
         return False
 
     def ok(self):
@@ -366,6 +365,8 @@ class GUI(QObject):
         if (self._tableLabel._mousePressPos):
             for i in range(0, gameData._playerNumber):
                 if (i == gameData._currentPlayer):
+                    l = (i - self._client._id + gameData._playerNumber) % gameData._playerNumber
+            
                     radius = common.playerRadius(gameData._playerNumber, self._globalRatio)
                     
                     positions = [(self._tableLabel.pixmap().width() // 2,
@@ -385,10 +386,10 @@ class GUI(QObject):
                         rect = QRectF(int(j * self._cardSize[0] * self._overCardRatio), 0, self._cardSize[0] * (1 if j == n - 1 else self._overCardRatio), self._cardSize[1])
                         transform = QTransform()
                         transform.translate(rect.center().x(), rect.center().y())
-                        transform.rotate(angles[i])
+                        transform.rotate(angles[l])
                         transform.translate(-rect.center().x(), -rect.center().y())
-                        transform.translate(positions[i][0] - w / 2,
-                                            positions[i][1] - self._cardSize[1] / 2)
+                        transform.translate(positions[l][0] - w / 2,
+                                            positions[l][1] - self._cardSize[1] / 2)
         
                         points = [transform.map(rect.topLeft()),
                                   transform.map(rect.topRight()),
@@ -397,7 +398,7 @@ class GUI(QObject):
                                   transform.map(rect.topLeft())]
                         
                         polygon = QPolygonF(points)
-                       
+
                         if (polygon.containsPoint(self._tableLabel._mousePressPos, Qt.WindingFill)):
                             enabledCards = []
                         
