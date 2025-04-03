@@ -314,15 +314,15 @@ class GameData:
                                   avatarCenter[1] - img.height // 2))
                 tableImage = Image.alpha_composite(tableImage, image)
 
-            if (j == self._currentPlayer):
+            if (i == self._currentPlayer):
                 draw = ImageDraw.Draw(tableImage)
-                draw.arc((avatarCenter[0] - size[0] // 2,
-                          avatarCenter[1] - size[1] // 2,
-                          avatarCenter[0] + size[0] // 2,
-                          avatarCenter[1] + size[1] // 2),
-                          start = -self._remainingTime / 30 * 360 + -90,
-                          end = -90,
-                          fill = "green", width = 2)
+                draw.arc((avatarCenter[0] - size[0] * 1.1 // 2,
+                          avatarCenter[1] - size[1] * 1.1 // 2,
+                          avatarCenter[0] + size[0] * 1.1 // 2,
+                          avatarCenter[1] + size[1] * 1.1 // 2),
+                          start = -gui._remainingTime / 15.0 * 360.0 + -90.0,
+                          end = -90.0,
+                          fill = "green", width = 3)
 
             transform = QTransform()
             transform.translate(tableImage.width / 2, tableImage.height / 2)
@@ -528,7 +528,7 @@ class Game(GameData):
             if (int(self._contract) == 0
                 or int(self._contract) == 1):
                 self._gameState = GameState.ShowDog
-                time.sleep(2.0)
+                time.sleep(1.0)
 
                 for card in self._dog:
                     if (card.isFamilyCard()
@@ -631,6 +631,8 @@ class Game(GameData):
         except EOFError:
             pass
         except TimeoutError:
+            pass
+        except OSError:
             pass
         
         self._currentPlayer = None

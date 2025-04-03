@@ -56,6 +56,7 @@ class GUI(QObject):
         self._localServer = None
         self._localClients = []
         self._timer = None
+        self._remainingTime = 15
 
         assert(0 < self._overCardRatio and self._overCardRatio <= 1)
 
@@ -268,10 +269,10 @@ class GUI(QObject):
         self._cardComboBox = QComboBox(self._window)
         self._cardComboBox.setVisible(False)
 
-        okButton = QPushButton(QCoreApplication.translate("play", "OK"), self._window)
-        okButton.clicked.connect(self.ok)
-        shortcut = QShortcut(QKeySequence(Qt.Key_Return), okButton)
-        shortcut.activated.connect(okButton.click)
+        self._okButton = QPushButton(QCoreApplication.translate("play", "OK"), self._window)
+        self._okButton.clicked.connect(self.ok)
+        shortcut = QShortcut(QKeySequence(Qt.Key_Return), self._okButton)
+        shortcut.activated.connect(self._okButton.click)
 
         verticalLayout = QVBoxLayout()
         verticalLayout.addWidget(self._contractLabel)
@@ -284,7 +285,7 @@ class GUI(QObject):
             verticalLayout.addWidget(self._dogComboBoxes[i])
         verticalLayout.addWidget(self._cardLabel)
         verticalLayout.addWidget(self._cardComboBox)
-        verticalLayout.addWidget(okButton)
+        verticalLayout.addWidget(self._okButton)
 
         horizontalLayout = QHBoxLayout()
         layout = QVBoxLayout()
@@ -310,6 +311,9 @@ class GUI(QObject):
         self._ok = True
 
     def monitor(self):
+        if (self._remainingTime <= 0):
+            self._okButton.click()
+        
         if (not self._centeredWindow and self._window.height() > 200):
             screen_geometry = QApplication.desktop().availableGeometry()
             screen_width = screen_geometry.width()
@@ -341,6 +345,8 @@ class GUI(QObject):
             self.displayTable(gameData._dog, False, True)
         elif (gameState == Game.GameState.ShowDog):
             self.displayTable(gameData._dog, True)
+        elif (gameState == Game.GameState.Play and len(gameData._centerCards)):
+            self.displayTable(gameData._centerCards, True, False)
         elif (gameState == Game.GameState.DoDog):
             self.displayTable([], False, True)
         

@@ -100,7 +100,10 @@ class Client:
             try:
                 data = self._conn.root.gameData()
                 self._gameData = pickle.loads(data)
+                self._gui._remainingTime = self._gameData._remainingTime
             except EOFError:
                 pass
             except TimeoutError:
+                pass
+            except OSError:
                 pass

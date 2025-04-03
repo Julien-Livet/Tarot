@@ -17,6 +17,7 @@ class Room:
         self._game = game
         self._chosenContract = False
         self._started = False
+        self._currentTime = datetime.now()
 
 @rpyc.service
 class Service(rpyc.Service):
@@ -41,14 +42,6 @@ class Service(rpyc.Service):
         del Service._clients[Service._clients.index(self._conn)]
         del Service._clientRooms[self._conn]
 
-    @rpyc.exposed
-    def null(self):
-        pass
-    
-    @rpyc.exposed
-    def remainingTime(self):
-        return Service._clientRooms[self._conn]._game._remainingTime
-    
     @rpyc.exposed
     def currentPlayer(self):
         return Service._clientRooms[self._conn]._game._currentPlayer
@@ -106,8 +99,13 @@ class Service(rpyc.Service):
 
     @rpyc.exposed
     def gameData(self):
+        room = Service._clientRooms[self._conn]
+        game = room._game
+
+        game._remainingTime = max(0, 15 - (datetime.now() - room._currentTime).total_seconds())
+        
         gameData = Game.GameData(3)
-        for key, value in vars(Service._rooms[self._playerNumber][self._roomId]._game).items():
+        for key, value in vars(game).items():
             if (key != "_server"):
                 setattr(gameData, key, value)
 
@@ -116,6 +114,7 @@ class Service(rpyc.Service):
     def chooseContract(self, game):
         playerNumber, roomId = Service._gameRooms[game]
         room = Service._rooms[playerNumber][roomId]
+        room._currentTime = datetime.now()
 
         #TODO: Lancer un timer
         return room._clients[game._currentPlayer].root.chooseContract()
@@ -123,6 +122,7 @@ class Service(rpyc.Service):
     def callKing(self, game):
         playerNumber, roomId = Service._gameRooms[game]
         room = Service._rooms[playerNumber][roomId]
+        room._currentTime = datetime.now()
 
         #TODO: Lancer un timer
         return room._clients[game._currentPlayer].root.callKing()
@@ -130,6 +130,7 @@ class Service(rpyc.Service):
     def doDog(self, game):
         playerNumber, roomId = Service._gameRooms[game]
         room = Service._rooms[playerNumber][roomId]
+        room._currentTime = datetime.now()
 
         #TODO: Lancer un timer
         data = room._clients[room._game._taker].root.doDog(pickle.dumps(room._game._dog))
@@ -138,9 +139,10 @@ class Service(rpyc.Service):
         
         return dog
 
-    def playCard(self, game, players, cards):        
+    def playCard(self, game, players, cards):
         playerNumber, roomId = Service._gameRooms[game]
         room = Service._rooms[playerNumber][roomId]
+        room._currentTime = datetime.now()
 
         #TODO: Lancer un timer
         data = room._clients[room._game._currentPlayer].root.playCard(pickle.dumps((players, cards)))
