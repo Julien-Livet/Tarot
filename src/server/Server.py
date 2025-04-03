@@ -59,7 +59,9 @@ class Service(rpyc.Service):
         
         while ((datetime.now() - currentTime).total_seconds() < 15):
             time.sleep(0.1)
-            
+
+        room = Service._clientRooms[self._conn]
+        
         global port
         
         for i in range(len(room._clients), self._playerNumber):
