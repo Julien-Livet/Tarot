@@ -57,7 +57,7 @@ class Service(rpyc.Service):
     def addBots(self):
         currentTime = datetime.now()
         
-        while ((datetime.now() - room._currentTime).total_seconds() < 15):
+        while ((datetime.now() - currentTime).total_seconds() < 15):
             time.sleep(0.1)
             
         global port
