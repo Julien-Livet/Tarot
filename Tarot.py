@@ -1842,7 +1842,10 @@ class Game:
                                     int(y - globalRatio * 80 * math.cos(math.radians(angles[i])) - textImage.height / 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
-            enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
+            enabledCards = [True for c in self._players[i]._cards]
+            
+            if (i == self._currentPlayer):
+                enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
 
             playerCardsImage = imageForCards(self._players[i]._cards,
                                              enabledCards,
