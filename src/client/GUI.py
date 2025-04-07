@@ -90,7 +90,7 @@ class GUI(QObject):
             self._dialog.accept()
 
     def displayTable(self, centerCards: list, displayCenterCards: bool = False, centerCardsIsDog: bool = False):
-        if (not self._client or not self._client._id):
+        if (self._client == None or self._client._id == None):
             return
 
         img = self._client._gameData.tableImage(self,
