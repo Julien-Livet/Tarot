@@ -6,7 +6,7 @@ import os
 from PIL import Image
 from PyQt5.QtCore import QCoreApplication
 import random
-import tie
+import time
 
 class Player:
     def __init__(self, playerNumber, id):
