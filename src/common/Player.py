@@ -5,8 +5,8 @@ from common import common
 import os
 from PIL import Image
 from PyQt5.QtCore import QCoreApplication
-from PyQt5 import QtTest
 import random
+import tie
 
 class Player:
     def __init__(self, playerNumber, id):
@@ -109,7 +109,7 @@ class Player:
             gui._ok = False
 
             while (not gui._ok):
-                QtTest.QTest.qWait(10)
+                time.sleep(0.01)
 
             contract = {v: k for k, v in strContracts.items()}.get(choices[gui._contractComboBox.currentIndex()])
 
@@ -188,7 +188,7 @@ class Player:
             gui._ok = False
             
             while (not gui._ok):
-                QtTest.QTest.qWait(10)
+                time.sleep(0.01)
             
             calledKing = Family.Family({v: k for k, v in strFamilies.items()}.get(choices[gui._kingComboBox.currentIndex()]))
             
@@ -264,7 +264,7 @@ class Player:
                 gui._ok = False
                 
                 while (not gui._ok):
-                    QtTest.QTest.qWait(10)
+                    time.sleep(0.01)
   
                 selectedCards = []
                 
@@ -413,7 +413,7 @@ class Player:
         return enabledCards
 
     def playCard(self, gui, players: list, cards: dict, game) -> Card.Card:
-        QtTest.QTest.qWait(1000)
+        time.sleep(1.0)
 
         card = None
 
@@ -444,7 +444,7 @@ class Player:
             gui._ok = False
             
             while (not gui._ok):
-                QtTest.QTest.qWait(10)
+                time.sleep(0.01)
             
             gui._cardLabel.setVisible(False)
             gui._cardComboBox.setVisible(False)
