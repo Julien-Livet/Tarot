@@ -113,8 +113,8 @@ class GUI(QObject):
     def chooseAvatar(self):
         options = QFileDialog.Options()
         filename, _ = QFileDialog.getOpenFileName(self._window,
-                                                  QCoreApplication.translate("play", "Choisir un avatar"), "",
-                                                  QCoreApplication.translate("play", "Images (*.png *.xpm *.jpg); Tous les fichiers (*.*)"), options = options)
+                                                  QCoreApplication.translate("play", "Choose an avatar"), "",
+                                                  QCoreApplication.translate("play", "Images (*.png *.xpm *.jpg); All files (*.*)"), options = options)
         
         if (filename):
             self._avatarFilename = filename

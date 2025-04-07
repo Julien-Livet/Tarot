@@ -4,12 +4,10 @@
 <context>
     <name>Asset</name>
     <message>
-        <location filename="Tarot.py" line="243"/>
         <source>Fool</source>
         <translation type="obsolete">Excuse</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="243"/>
         <source>Asset %1</source>
         <translation type="obsolete">%1 d&apos;atout</translation>
     </message>
@@ -17,102 +15,82 @@
 <context>
     <name>FamilyCard</name>
     <message>
-        <location filename="Tarot.py" line="342"/>
         <source>Heart %1</source>
         <translation type="obsolete">%1 de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="344"/>
         <source>Diamond %1</source>
         <translation type="obsolete">%1 de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="346"/>
         <source>Club %1</source>
         <translation type="obsolete">%1 de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="348"/>
         <source>Spade %1</source>
         <translation type="obsolete">%1 de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="352"/>
         <source>Heart jack</source>
         <translation type="obsolete">Valet de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="354"/>
         <source>Diamond jack</source>
         <translation type="obsolete">Valet de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="356"/>
         <source>Club jack</source>
         <translation type="obsolete">Valet de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="358"/>
         <source>Spade jack</source>
         <translation type="obsolete">Valet de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="361"/>
         <source>Heart knight</source>
         <translation type="obsolete">Cavalier de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="363"/>
         <source>Diamond knight</source>
         <translation type="obsolete">Cavalier de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="365"/>
         <source>Club knight</source>
         <translation type="obsolete">Cavalier de frèle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="367"/>
         <source>Spade knight</source>
         <translation type="obsolete">Cavalier de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="370"/>
         <source>Heart queen</source>
         <translation type="obsolete">Reine de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="372"/>
         <source>Diamond queen</source>
         <translation type="obsolete">Reine de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="374"/>
         <source>Club queen</source>
         <translation type="obsolete">Reine de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="376"/>
         <source>Spade queen</source>
         <translation type="obsolete">Reine de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="379"/>
         <source>Heart king</source>
         <translation type="obsolete">Roi de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="381"/>
         <source>Diamond king</source>
         <translation type="obsolete">Roi de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="383"/>
         <source>Club king</source>
         <translation type="obsolete">Roi de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="386"/>
         <source>Spade king</source>
         <translation type="obsolete">Roi de pique</translation>
     </message>
@@ -120,51 +98,42 @@
 <context>
     <name>GUI</name>
     <message>
-        <location filename="Tarot.py" line="176"/>
         <source>
 Called king: </source>
         <translation type="obsolete">
 Roi appelé : </translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="180"/>
         <source>
 Contract: </source>
         <translation type="obsolete">
 Contrat : </translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="182"/>
         <source> (</source>
         <translation type="obsolete"> (</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="185"/>
         <source> points)</source>
         <translation type="obsolete"> points)</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="209"/>
         <source>Game over</source>
         <translation type="obsolete">Fin du jeu</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="195"/>
         <source>Nobody takes!</source>
         <translation type="obsolete">Personne n&apos;a pris!</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="186"/>
         <source>Attack points: %1 - Defence points: %2</source>
         <translation type="obsolete">Points d&apos;attaque : %1 - Points de défense : %2</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="205"/>
         <source>Attack wins (%1 points for %2 points)!</source>
         <translation type="obsolete">L&apos;attaque a gagné (%1 points pour %2 points) !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="211"/>
         <source>Attack loses (%1 points for %2 points)!</source>
         <translation type="obsolete">L&apos;attaque a perdu (%1 points pour %2 points) !</translation>
     </message>
@@ -172,7 +141,6 @@ Contrat : </translation>
 <context>
     <name>Player</name>
     <message>
-        <location filename="Tarot.py" line="611"/>
         <source>Pass</source>
         <translation type="obsolete">Passe</translation>
     </message>
@@ -180,42 +148,34 @@ Contrat : </translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="Tarot.py" line="263"/>
         <source>Little</source>
         <translation type="obsolete">Petite</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="265"/>
         <source>Guard</source>
         <translation type="obsolete">Garde</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="267"/>
         <source>Guard without</source>
         <translation type="obsolete">Garde sans</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="269"/>
         <source>Guard against</source>
         <translation type="obsolete">Garde contre</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="284"/>
         <source>Heart</source>
         <translation type="obsolete">Cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="286"/>
         <source>Diamond</source>
         <translation type="obsolete">Carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="288"/>
         <source>Club</source>
         <translation type="obsolete">Trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="290"/>
         <source>Spade</source>
         <translation type="obsolete">Pique</translation>
     </message>
@@ -223,7 +183,7 @@ Contrat : </translation>
 <context>
     <name>chooseContract</name>
     <message>
-        <location filename="Tarot.py" line="740"/>
+        <location filename="src/common/Player.py" line="99"/>
         <source>Pass</source>
         <translation>Passe</translation>
     </message>
@@ -231,81 +191,79 @@ Contrat : </translation>
 <context>
     <name>monitor</name>
     <message>
-        <location filename="Tarot.py" line="227"/>
+        <location filename="src/client/GUI.py" line="358"/>
         <source>
 Called king: </source>
         <translation>
 Roi appelé : </translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="231"/>
+        <location filename="src/client/GUI.py" line="362"/>
         <source>
 Contract: </source>
         <translation>
 Contrat : </translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="185"/>
         <source>Attack points: %1 - Defence points: %2</source>
         <translation type="obsolete">Points d&apos;attaque : %1 - Points de défense : %2</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="316"/>
+        <location filename="src/client/GUI.py" line="435"/>
+        <location filename="src/client/GUI.py" line="442"/>
+        <location filename="src/client/GUI.py" line="449"/>
         <source>Game over</source>
         <translation>Fin du jeu</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="303"/>
+        <location filename="src/client/GUI.py" line="436"/>
         <source>Nobody takes!</source>
         <translation>Personne n&apos;a pris !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="204"/>
         <source>Attack wins (%1 points for %2 points)!</source>
         <translation type="obsolete">L&apos;attaque a gagné (%1 points pour %2 points) !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="210"/>
         <source>Attack loses (%1 points for %2 points)!</source>
         <translation type="obsolete">L&apos;attaque a perdu (%1 points pour %2 points) !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="237"/>
+        <location filename="src/client/GUI.py" line="368"/>
         <source>Attack points: {0} - Defence points: {1}</source>
         <translation>Points d&apos;attaque : {0} - Points de défense : {1}</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="205"/>
         <source>Attack wins ({0} points for {1} points)!</source>
         <translation type="obsolete">L&apos;attaque a gagné ({0} points pour {1} points) !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="211"/>
         <source>Attack loses ({0} points for %2 points)!</source>
         <translation type="obsolete">L&apos;attaque a perdu ({0} points pour {1} points) !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="211"/>
         <source>Attack loses ({0} points for {1} points)!</source>
         <translation type="obsolete">L&apos;attaque a perdu ({0} points pour {1} points) !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="317"/>
+        <location filename="src/client/GUI.py" line="443"/>
+        <location filename="src/client/GUI.py" line="450"/>
         <source>Well done!</source>
         <translation>Bravo !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="318"/>
+        <location filename="src/client/GUI.py" line="443"/>
+        <location filename="src/client/GUI.py" line="450"/>
         <source>Shame!</source>
         <translation>Dommage !</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="312"/>
+        <location filename="src/client/GUI.py" line="445"/>
         <source> Attack wins ({0} points for {1} points)!</source>
         <translation> Attack wins ({0} points for {1} points)!</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="319"/>
+        <location filename="src/client/GUI.py" line="452"/>
         <source> Attack loses ({0} points for {1} points)!</source>
         <translation> L&apos;attaque a perdu ({0} points pour {1} points) !</translation>
     </message>
@@ -313,217 +271,212 @@ Contrat : </translation>
 <context>
     <name>name</name>
     <message>
-        <location filename="Tarot.py" line="351"/>
+        <location filename="src/common/Asset.py" line="30"/>
         <source>Fool</source>
         <translation>Excuse</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="242"/>
         <source>Asset %1</source>
         <translation type="obsolete">%1 d&apos;atout</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="371"/>
+        <location filename="src/common/Contract.py" line="16"/>
         <source>Little</source>
         <translation>Petite</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="373"/>
+        <location filename="src/common/Contract.py" line="18"/>
         <source>Guard</source>
         <translation>Garde</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="375"/>
+        <location filename="src/common/Contract.py" line="20"/>
         <source>Guard without</source>
         <translation>Garde sans</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="377"/>
+        <location filename="src/common/Contract.py" line="22"/>
         <source>Guard against</source>
         <translation>Garde contre</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="395"/>
+        <location filename="src/common/Family.py" line="28"/>
         <source>Heart</source>
         <translation>Cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="397"/>
+        <location filename="src/common/Family.py" line="30"/>
         <source>Diamond</source>
         <translation>Carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="399"/>
+        <location filename="src/common/Family.py" line="32"/>
         <source>Club</source>
         <translation>Trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="401"/>
+        <location filename="src/common/Family.py" line="34"/>
         <source>Spade</source>
         <translation>Pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="419"/>
+        <location filename="src/common/Head.py" line="16"/>
         <source>Jack</source>
         <translation>Valet</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="421"/>
+        <location filename="src/common/Head.py" line="18"/>
         <source>Knight</source>
         <translation>Cavalier</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="423"/>
+        <location filename="src/common/Head.py" line="20"/>
         <source>Queen</source>
         <translation>Reine</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="425"/>
+        <location filename="src/common/Head.py" line="22"/>
         <source>King</source>
         <translation>Roi</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="343"/>
         <source>Heart %1</source>
         <translation type="obsolete">%1 de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="345"/>
         <source>Diamond %1</source>
         <translation type="obsolete">%1 de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="347"/>
         <source>Club %1</source>
         <translation type="obsolete">%1 de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="349"/>
         <source>Spade %1</source>
         <translation type="obsolete">%1 de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="471"/>
+        <location filename="src/common/FamilyCard.py" line="45"/>
         <source>Heart jack</source>
         <translation>Valet de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="473"/>
+        <location filename="src/common/FamilyCard.py" line="47"/>
         <source>Diamond jack</source>
         <translation>Valet de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="475"/>
+        <location filename="src/common/FamilyCard.py" line="49"/>
         <source>Club jack</source>
         <translation>Valet de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="477"/>
+        <location filename="src/common/FamilyCard.py" line="51"/>
         <source>Spade jack</source>
         <translation>Valet de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="480"/>
+        <location filename="src/common/FamilyCard.py" line="54"/>
         <source>Heart knight</source>
         <translation>Cavalier de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="482"/>
+        <location filename="src/common/FamilyCard.py" line="56"/>
         <source>Diamond knight</source>
         <translation>Cavalier de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="484"/>
+        <location filename="src/common/FamilyCard.py" line="58"/>
         <source>Club knight</source>
         <translation>Cavalier de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="486"/>
+        <location filename="src/common/FamilyCard.py" line="60"/>
         <source>Spade knight</source>
         <translation>Cavalier de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="489"/>
+        <location filename="src/common/FamilyCard.py" line="63"/>
         <source>Heart queen</source>
         <translation>Reine de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="491"/>
+        <location filename="src/common/FamilyCard.py" line="65"/>
         <source>Diamond queen</source>
         <translation>Reine de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="493"/>
+        <location filename="src/common/FamilyCard.py" line="67"/>
         <source>Club queen</source>
         <translation>Reine de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="495"/>
+        <location filename="src/common/FamilyCard.py" line="69"/>
         <source>Spade queen</source>
         <translation>Reine de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="498"/>
+        <location filename="src/common/FamilyCard.py" line="72"/>
         <source>Heart king</source>
         <translation>Roi de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="500"/>
+        <location filename="src/common/FamilyCard.py" line="74"/>
         <source>Diamond king</source>
         <translation>Roi de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="502"/>
+        <location filename="src/common/FamilyCard.py" line="76"/>
         <source>Club king</source>
         <translation>Roi de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="505"/>
+        <location filename="src/common/FamilyCard.py" line="79"/>
         <source>Spade king</source>
         <translation>Roi de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="351"/>
+        <location filename="src/common/Asset.py" line="30"/>
         <source>Asset {0}</source>
         <translation>{0} d&apos;atout</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="461"/>
+        <location filename="src/common/FamilyCard.py" line="35"/>
         <source>Heart {0}</source>
         <translation>{0} de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="463"/>
+        <location filename="src/common/FamilyCard.py" line="37"/>
         <source>Diamond {0}</source>
         <translation>{0} de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="465"/>
+        <location filename="src/common/FamilyCard.py" line="39"/>
         <source>Club {0}</source>
         <translation>{0} de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="467"/>
+        <location filename="src/common/FamilyCard.py" line="41"/>
         <source>Spade {0}</source>
         <translation>{0} de pique</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="453"/>
+        <location filename="src/common/FamilyCard.py" line="27"/>
         <source>Ace of hearts</source>
         <translation>As de cœur</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="455"/>
+        <location filename="src/common/FamilyCard.py" line="29"/>
         <source>Ace of diamonds</source>
         <translation>As de carreau</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="457"/>
+        <location filename="src/common/FamilyCard.py" line="31"/>
         <source>Ace of clubs</source>
         <translation>As de trèfle</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="459"/>
+        <location filename="src/common/FamilyCard.py" line="33"/>
         <source>Ace of spade</source>
         <translation>As de pique</translation>
     </message>
@@ -531,90 +484,107 @@ Contrat : </translation>
 <context>
     <name>play</name>
     <message>
-        <location filename="Tarot.py" line="87"/>
+        <location filename="src/client/GUI.py" line="141"/>
         <source>Three players</source>
         <translation>Trois joueurs</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="89"/>
+        <location filename="src/client/GUI.py" line="143"/>
         <source>Four players</source>
         <translation>Quatre joueurs</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="91"/>
+        <location filename="src/client/GUI.py" line="145"/>
         <source>Five players</source>
         <translation>Cinq joueurs</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="125"/>
+        <location filename="src/client/GUI.py" line="238"/>
         <source>Tarot</source>
         <translation>Tarot</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="128"/>
+        <location filename="src/client/GUI.py" line="241"/>
         <source>Attack points: 0 - Defence points: 0</source>
         <translation>Points d&apos;attaque : 0 - Points de défense : 0</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="131"/>
+        <location filename="src/client/GUI.py" line="244"/>
         <source>Choose a contract</source>
         <translation>Choisir un contrat</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="141"/>
+        <location filename="src/client/GUI.py" line="254"/>
         <source>Call a king</source>
         <translation>Appeler un roi</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="147"/>
+        <location filename="src/client/GUI.py" line="260"/>
         <source>Do a dog</source>
         <translation>Faire un chien</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="155"/>
+        <location filename="src/client/GUI.py" line="268"/>
         <source>Play a card</source>
         <translation>Jouer une carte</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="160"/>
+        <location filename="src/client/GUI.py" line="273"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="182"/>
         <source> (%1 points)</source>
         <translation type="obsolete"> (%1 points)</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="233"/>
+        <location filename="src/client/GUI.py" line="364"/>
         <source> ({0} points)</source>
         <translation> ({0} points)</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="83"/>
+        <location filename="src/client/GUI.py" line="131"/>
         <source>Choose a game</source>
         <translation>Choisir un jeu</translation>
+    </message>
+    <message>
+        <location filename="src/client/GUI.py" line="116"/>
+        <source>Choose an avatar</source>
+        <oldsource>Choisir un avatar</oldsource>
+        <translation>Choisir un avatar</translation>
+    </message>
+    <message>
+        <location filename="src/client/GUI.py" line="117"/>
+        <source>Images (*.png *.xpm *.jpg); All files (*.*)</source>
+        <oldsource>Images (*.png *.xpm *.jpg); Tous les fichiers (*.*)</oldsource>
+        <translation>Images (*.png *.xpm *.jpg); Tous les fichiers (*.*)</translation>
+    </message>
+    <message>
+        <location filename="src/client/GUI.py" line="148"/>
+        <source>Local</source>
+        <translation>Local</translation>
+    </message>
+    <message>
+        <location filename="src/client/GUI.py" line="149"/>
+        <source>Online</source>
+        <translation>En ligne</translation>
     </message>
 </context>
 <context>
     <name>self._dialog</name>
     <message>
-        <location filename="Tarot.py" line="49"/>
         <source>Choose a game</source>
         <translation type="obsolete">Choisir un jeu</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="53"/>
         <source>Three players</source>
         <translation type="obsolete">Trois joueurs</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="55"/>
         <source>Four players</source>
         <translation type="obsolete">Quatre joueurs</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="57"/>
         <source>Five players</source>
         <translation type="obsolete">Cinq joueurs</translation>
     </message>
@@ -622,37 +592,30 @@ Contrat : </translation>
 <context>
     <name>self._window</name>
     <message>
-        <location filename="Tarot.py" line="78"/>
         <source>Tarot</source>
         <translation type="obsolete">Tarot</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="81"/>
         <source>Attack points: 0 - Defence points: 0</source>
         <translation type="obsolete">Points d&apos;attaque : 0 - Points de défense : 0</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="84"/>
         <source>Choose a contract</source>
         <translation type="obsolete">Choisir un contrat</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="94"/>
         <source>Call a king</source>
         <translation type="obsolete">Appeler un roi</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="100"/>
         <source>Do a dog</source>
         <translation type="obsolete">Faire un chien</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="107"/>
         <source>Play a card</source>
         <translation type="obsolete">Jouer une carte</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="112"/>
         <source>OK</source>
         <translation type="obsolete">OK</translation>
     </message>
@@ -660,14 +623,12 @@ Contrat : </translation>
 <context>
     <name>tableImage</name>
     <message>
-        <location filename="Tarot.py" line="1801"/>
         <source>Attack</source>
-        <translation>Attaque</translation>
+        <translation type="obsolete">Attaque</translation>
     </message>
     <message>
-        <location filename="Tarot.py" line="1803"/>
         <source>Defence</source>
-        <translation>Défense</translation>
+        <translation type="obsolete">Défense</translation>
     </message>
 </context>
 </TS>

@@ -434,7 +434,7 @@ class Player:
                 strCards[i] = self._cards[i].name()
                 choices.append(self._cards[i].name())
 
-        gui.displayTable(cardList, True)
+        gui.displayTable(cardList, True, False)
 
         if (self._isHuman):
             gui._cardLabel.setVisible(True)
