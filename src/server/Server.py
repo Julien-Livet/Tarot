@@ -42,6 +42,7 @@ class Service(rpyc.Service):
     def on_disconnect(self, conn):
         del Service._clients[Service._clients.index(self._conn)]
         del Service._clientRooms[self._conn]
+        self._conn = None
 
     @rpyc.exposed
     def connect(self, data):
@@ -58,11 +59,16 @@ class Service(rpyc.Service):
         currentTime = datetime.now()
         
         while ((datetime.now() - currentTime).total_seconds() < 15):
+            if (self._conn == None):
+                return
+
             time.sleep(0.1)
 
         room = Service._clientRooms[self._conn]
         
         global port
+        
+        from client import Client
         
         for i in range(len(room._clients), self._playerNumber):
             Client.Client(self, self._playerNumber, False, "localhost", port)

@@ -52,7 +52,6 @@ class GUI(QObject):
         self._client = None
         self._avatarFilename = os.path.dirname(__file__) + "/../../images/avatar.png"
         self._avatar = Image.open(os.path.dirname(__file__) + "/../../images/avatar.png")
-        self._init = False
         self._localServer = None
         self._localClients = []
         self._timer = None
@@ -212,6 +211,8 @@ class GUI(QObject):
                     self._localServer = ThreadedServer(Server.Service, port = port)
                     launched = True
                 except ConnectionRefusedError:
+                    port = random.randrange(1024, 49151)
+                except OSError:
                     port = random.randrange(1024, 49151)
 
             threading.Thread(target = self._localServer.start).start()

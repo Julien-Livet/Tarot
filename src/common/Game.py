@@ -425,7 +425,10 @@ class GameData:
                                     int(p[1] - textImage.height // 2)))
             tableImage = Image.alpha_composite(tableImage, image)
             
-            enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
+            enabledCards = [True for c in self._players[i]._cards]
+            
+            if (i == self._currentPlayer):
+                enabledCards = self._players[i].enabledCards(centerCards, self._firstRound, self._calledKing, centerCardsIsDog)
 
             playerCardsImage = common.imageForCards(self._players[i]._cards,
                                                     enabledCards,
