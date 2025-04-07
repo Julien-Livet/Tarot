@@ -56,7 +56,7 @@ class Player:
                       Family.Family.Club: False,
                       Family.Family.Spade: False}
 
-    def isHuman(self):
+    def isHuman(self) -> bool:
         return self._isHuman
 
     def points(self) -> int:
