@@ -96,7 +96,6 @@ class Client:
     
         while (not self._conn.closed):
             time.sleep(0.1)
-            print(self._gui._remainingTime)
         
             try:
                 data = self._conn.root.gameData()
