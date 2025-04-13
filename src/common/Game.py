@@ -528,19 +528,20 @@ class Game(GameData):
 
             kingInDog = False
 
-            if (self._calledKing and int(self._contract) == 0
+            if (int(self._contract) == 0
                 or int(self._contract) == 1):
                 self._gameState = GameState.ShowDog
                 time.sleep(1.0)
 
-                for card in self._dog:
-                    if (card.isFamilyCard()
-                        and int(card.familyCard().family()) == int(self._calledKing)
-                        and card.familyCard().value() == 14):
-                        kingInDog = True
-                        break
+                if (self._calledKing):
+                    for card in self._dog:
+                        if (card.isFamilyCard()
+                            and int(card.familyCard().family()) == int(self._calledKing)
+                            and card.familyCard().value() == 14):
+                            kingInDog = True
+                            break
 
-            if (not kingInDog):
+            if (not kingInDog and self._calledKing):
                 found = False
 
                 for i in range(0, len(self._players)):
@@ -560,8 +561,8 @@ class Game(GameData):
                         self._players[i]._attackTeam = False
                         self._players[i]._teamKnown = True
 
-            if (self._contract == Contract.Contract.Little
-                or self._contract == Contract.Contract.Guard):
+            if (int(self._contract) == int(Contract.Contract.Little)
+                or int(self._contract) == int(Contract.Contract.Guard)):
                 self._gameState = GameState.DoDog
             
                 self._dog = self._server.doDog(self)
@@ -604,14 +605,14 @@ class Game(GameData):
                                         
                         if (cards[p].isAsset()):      
                             if (firstCard and firstCard.isFamilyCard()
-                                and firstCard.familyCard().family() == self._calledKing):
+                                and int(firstCard.familyCard().family()) == int(self._calledKing)):
                                 self._players[p]._attackTeam = False
                                 self._players[p]._teamKnown = True
-                        elif (cards[p].isFamilyCard()
-                              and firstCard == self._calledKing
-                              and cards[p].isFamilyCard() != self._calledKing):
-                            self._players[p]._attackTeam = False
-                            self._players[p]._teamKnown = True
+                        elif (cards[p].isFamilyCard()):
+                            if (firstCard and firstCard.isFamilyCard()
+                                and int(firstCard.familyCard().family()) == self._calledKing):
+                                self._players[p]._attackTeam = False
+                                self._players[p]._teamKnown = True
 
                     time.sleep(1.0)
                 
