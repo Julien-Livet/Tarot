@@ -320,8 +320,8 @@ class GameData:
                           avatarCenter[1] - size[1] * 1.1 // 2,
                           avatarCenter[0] + size[0] * 1.1 // 2,
                           avatarCenter[1] + size[1] * 1.1 // 2),
-                          start = -gui._remainingTime / 15.0 * 360.0 + -90.0,
-                          end = -90.0,
+                          start = -angles[j] - gui._remainingTime / 15.0 * 360.0 + -90.0,
+                          end = -angles[j] - 90.0,
                           fill = "green", width = 3)
 
             transform = QTransform()
@@ -528,14 +528,14 @@ class Game(GameData):
 
             kingInDog = False
 
-            if (int(self._contract) == 0
+            if (self._calledKing and int(self._contract) == 0
                 or int(self._contract) == 1):
                 self._gameState = GameState.ShowDog
                 time.sleep(1.0)
 
                 for card in self._dog:
                     if (card.isFamilyCard()
-                        and card.familyCard().family() == self._calledKing
+                        and int(card.familyCard().family()) == int(self._calledKing)
                         and card.familyCard().value() == 14):
                         kingInDog = True
                         break
@@ -546,7 +546,7 @@ class Game(GameData):
                 for i in range(0, len(self._players)):
                     for card in self._players[i].cards():
                         if (card.isFamilyCard()
-                            and card.familyCard().family() == self._calledKing
+                            and int(card.familyCard().family()) == int(self._calledKing)
                             and card.familyCard().value() == 14):
                             self._players[i]._attackTeam = True
                             found = True
@@ -583,8 +583,8 @@ class Game(GameData):
                     cards[p] = self._server.playCard(self, players, cards)
                     self._centerCards = [x[1] for x in cards.items()]
                     
-                    if (cards[p].isFamilyCard()
-                        and cards[p].familyCard().family() == self._calledKing
+                    if (self._calledKing and cards[p].isFamilyCard()
+                        and int(cards[p].familyCard().family()) == int(self._calledKing)
                         and cards[p].familyCard().value() == 14):
                         for player in self._players:
                             player._teamKnown = True
